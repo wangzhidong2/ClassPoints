@@ -1,0 +1,4895 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>多功能课堂积分管理系统</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1a2980, #26d0ce);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1500px;
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            padding: 25px 40px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 20px;
+            position: relative;
+        }
+
+        .class-controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .class-title {
+            font-size: 2.3rem;
+            font-weight: 800;
+            color: white;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            padding: 8px 20px;
+            border-radius: 50px;
+            background: rgba(255, 255, 255, 0.15);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .class-title:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-3px);
+        }
+
+        .emoji {
+            font-size: 2rem;
+            display: inline-block;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .class-manager {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .class-btn {
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            padding: 12px 25px;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .class-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .class-btn i {
+            font-size: 1.2rem;
+        }
+
+        .menu-bar {
+            background-color: white;
+            padding: 18px 30px;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .menu-btn {
+            background: linear-gradient(to right, #4facfe, #00f2fe);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            min-width: 130px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .menu-btn.random {
+            background: linear-gradient(to right, #9c27b0, #e91e63);
+        }
+
+        .menu-btn.delete {
+            background: linear-gradient(to right, #ff6b6b, #ff8e8e);
+        }
+
+        .menu-btn.step {
+            background: linear-gradient(to right, #ff9800, #ffc107);
+        }
+        
+        .menu-btn.shop {
+            background: linear-gradient(to right, #e91e63, #f44336);
+        }
+        
+        .menu-btn.record {
+            background: linear-gradient(to right, #673ab7, #9c27b0);
+        }
+        
+        .menu-btn.summary {
+            background: linear-gradient(to right, #4caf50, #8bc34a);
+        }
+
+        .menu-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25);
+        }
+
+        .menu-btn:active {
+            transform: translateY(1px);
+        }
+
+        .student-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 25px;
+            padding: 40px;
+            min-height: 400px;
+        }
+
+        .student-card {
+            background-color: white;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .student-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .student-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(to right, #4facfe, #00f2fe);
+        }
+
+        .edit-student {
+            position: absolute;
+            top: 10px;
+            right: 45px;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background-color: #3498db;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            opacity: 0;
+            transition: all 0.3s ease;
+            font-size: 16px;
+        }
+
+        .delete-student {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background-color: #ff6b6b;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            opacity: 0;
+            transition: all 0.3s ease;
+            font-size: 16px;
+        }
+
+        .student-card:hover .edit-student,
+        .student-card:hover .delete-student {
+            opacity: 1;
+        }
+
+        .student-name {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            padding-top: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .student-name:hover {
+            color: #e74c3c;
+            transform: scale(1.05);
+        }
+
+        .score-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .score-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: none;
+            font-size: 2rem;
+            font-weight: bold;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .score-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .minus-btn {
+            background: linear-gradient(to right, #ff6b6b, #ff8e8e);
+        }
+
+        .plus-btn {
+            background: linear-gradient(to right, #4cd964, #2ecc71);
+        }
+
+        .student-score {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #e74c3c;
+            min-width: 60px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .student-score:hover {
+            transform: scale(1.1);
+        }
+
+        .score-change {
+            animation: scoreChange 0.5s ease;
+        }
+
+        @keyframes scoreChange {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.3); }
+            100% { transform: scale(1); }
+        }
+
+        .row-0 { background: linear-gradient(135deg, #e3f2fd, #bbdefb); }
+        .row-1 { background: linear-gradient(135deg, #f1f8e9, #dcedc8); }
+        .row-2 { background: linear-gradient(135deg, #ffebee, #ffcdd2); }
+        .row-3 { background: linear-gradient(135deg, #f3e5f5, #e1bee7); }
+        .row-4 { background: linear-gradient(135deg, #fff8e1, #ffecb3); }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: white;
+            border-radius: 20px;
+            padding: 30px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
+            position: relative;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 2rem;
+            cursor: pointer;
+            color: #aaa;
+            transition: color 0.3s;
+        }
+
+        .close-btn:hover {
+            color: #333;
+        }
+
+        .modal-title {
+            text-align: center;
+            font-size: 2rem;
+            margin-bottom: 25px;
+            color: #3498db;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .ranking-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .ranking-item {
+            display: flex;
+            align-items: center;
+            padding: 15px 20px;
+            margin-bottom: 12px;
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            font-size: 1.4rem;
+            transition: transform 0.3s;
+        }
+
+        .ranking-item:hover {
+            transform: translateX(10px);
+            background: linear-gradient(to right, #e3f2fd, #f8f9fa);
+        }
+
+        .rank-medal {
+            font-size: 2.2rem;
+            margin-right: 15px;
+            width: 40px;
+            text-align: center;
+        }
+
+        .input-group-modal {
+            margin: 25px 0;
+            text-align: center;
+        }
+
+        .input-group-modal label {
+            display: block;
+            margin-bottom: 12px;
+            font-size: 1.2rem;
+            color: #555;
+        }
+
+        .input-group-modal input {
+            width: 100%;
+            padding: 14px 20px;
+            font-size: 1.2rem;
+            border: 2px solid #ddd;
+            border-radius: 12px;
+            margin: 10px 0;
+            text-align: center;
+        }
+
+        .input-group-modal input:focus {
+            border-color: #3498db;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+        }
+
+        .input-group-modal textarea {
+            width: 100%;
+            height: 200px;
+            padding: 15px;
+            font-size: 1.1rem;
+            border: 2px solid #ddd;
+            border-radius: 12px;
+            margin: 10px 0;
+            resize: vertical;
+        }
+
+        .input-group-modal textarea:focus {
+            border-color: #3498db;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+        }
+
+        .action-btns-modal {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 25px;
+        }
+
+        .confirm-btn, .cancel-btn {
+            padding: 14px 35px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            min-width: 120px;
+        }
+
+        .confirm-btn {
+            background: linear-gradient(to right, #4facfe, #00f2fe);
+            color: white;
+        }
+
+        .cancel-btn {
+            background-color: #e0e0e0;
+            color: #666;
+        }
+
+        .confirm-btn:hover, .cancel-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .file-input-label {
+            display: inline-block;
+            background: linear-gradient(to right, #4facfe, #00f2fe);
+            color: white;
+            padding: 12px 25px;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .file-input-label:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 50px;
+            color: #7f8c8d;
+            font-size: 1.5rem;
+            grid-column: 1 / -1;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 18px 30px;
+            border-radius: 12px;
+            background: linear-gradient(to right, #4cd964, #2ecc71);
+            color: white;
+            font-weight: bold;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+            transform: translateX(200%);
+            transition: transform 0.4s ease;
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .notification.error {
+            background: linear-gradient(to right, #ff6b6b, #ff8e8e);
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .class-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 15px;
+            justify-content: center;
+        }
+
+        .class-item {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 10px 20px;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+            border: 2px solid transparent;
+            position: relative;
+        }
+
+        .class-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+        }
+
+        .class-item.active {
+            background: linear-gradient(to right, #4facfe, #00f2fe);
+            color: white;
+            border-color: #3498db;
+            font-weight: bold;
+        }
+
+        .class-delete-btn {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #ff6b6b;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 14px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .class-manager-modal {
+            max-width: 700px;
+        }
+
+        .password-change-modal .action-btns-modal {
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .step-value {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 1rem;
+            font-weight: bold;
+        }
+
+        .example-text {
+            background: #f0f7ff;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            font-size: 0.9rem;
+            color: #555;
+            text-align: left;
+        }
+        
+        .password-modal {
+            display: flex;
+        }
+        
+        .password-container {
+            background-color: white;
+            padding: 40px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 450px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
+        }
+        
+        .password-title {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #3498db;
+            font-size: 2rem;
+        }
+        
+        .password-logo {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .password-logo i {
+            font-size: 3.5rem;
+            color: #3498db;
+        }
+        
+        .password-input-group {
+            margin-bottom: 20px;
+        }
+        
+        .password-input-group label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: bold;
+            color: #555;
+        }
+        
+        .password-input-group input {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.1rem;
+            border: 2px solid #ddd;
+            border-radius: 12px;
+            transition: all 0.3s;
+        }
+        
+        .password-input-group input:focus {
+            border-color: #3498db;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+        }
+        
+        .password-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(to right, #4facfe, #00f2fe);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+        
+        .password-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+        }
+        
+        .password-error {
+            color: #ff6b6b;
+            text-align: center;
+            margin-top: 15px;
+            min-height: 20px;
+            font-weight: bold;
+        }
+        
+        .random-picker-container {
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .random-student-display {
+            font-size: 3rem;
+            font-weight: bold;
+            color: #e74c3c;
+            min-height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 30px 0;
+            background: linear-gradient(135deg, #f1f8e9, #dcedc8);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .random-animation {
+            animation: randomBounce 0.5s infinite alternate;
+        }
+        
+        @keyframes randomBounce {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.1); }
+        }
+        
+        .pick-btn {
+            background: linear-gradient(to right, #9c27b0, #e91e63);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 50px;
+            font-size: 1.4rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+        }
+        
+        .pick-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .pick-btn:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+        }
+        
+        .random-history {
+            margin-top: 30px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .history-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #555;
+        }
+        
+        .history-item {
+            padding: 8px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .history-item:last-child {
+            border-bottom: none;
+        }
+        
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 25px;
+            padding: 20px;
+        }
+        
+        .product-card {
+            background-color: white;
+            border-radius: 15px;
+            padding: 15px;
+            text-align: center;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .product-image {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            background-color: #f5f5f5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #aaa;
+        }
+        
+        .product-name {
+            font-size: 1.4rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #333;
+        }
+        
+        .product-points {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #e74c3c;
+            margin-bottom: 15px;
+        }
+        
+        .product-stock {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+        
+        .product-status {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: bold;
+        }
+        
+        .status-available {
+            background-color: #4caf50;
+            color: white;
+        }
+        
+        .status-soldout {
+            background-color: #f44336;
+            color: white;
+        }
+        
+        .redeem-btn {
+            background: linear-gradient(to right, #4facfe, #00f2fe);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+            margin-top: 5px;
+        }
+        
+        .redeem-btn:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+        }
+        
+        .record-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        .record-table th, .record-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .record-table th {
+            background-color: #f5f7fa;
+            color: #333;
+            font-weight: bold;
+        }
+        
+        .record-table tr:hover {
+            background-color: #f9f9f9;
+        }
+        
+        .filter-controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .filter-controls select, .filter-controls button, .filter-controls input {
+            padding: 10px 15px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            font-size: 1rem;
+        }
+        
+        .filter-controls button {
+            background: linear-gradient(to right, #4facfe, #00f2fe);
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .cart-icon {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(to right, #ff9800, #ffc107);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 18px;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.16);
+            z-index: 10;
+        }
+        
+        .cart-popup {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 350px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            z-index: 1000;
+            display: none;
+            overflow: hidden;
+        }
+        
+        .cart-header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            padding: 15px 20px;
+            color: white;
+            font-size: 1.3rem;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .cart-close {
+            cursor: pointer;
+            font-size: 1.2rem;
+        }
+        
+        .cart-body {
+            max-height: 300px;
+            overflow-y: auto;
+            padding: 15px;
+        }
+        
+        .cart-item {
+            display: flex;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .cart-item-image {
+            width: 50px;
+            height: 50px;
+            border-radius: 8px;
+            background: #f5f5f5;
+            margin-right: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #aaa;
+        }
+        
+        .cart-item-info {
+            flex: 1;
+        }
+        
+        .cart-item-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .cart-item-points {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+        
+        .cart-footer {
+            padding: 15px;
+            background: #f9f9f9;
+            border-top: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .cart-total {
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+        
+        .checkout-btn {
+            background: linear-gradient(to right, #4caf50, #8bc34a);
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .product-form {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #555;
+        }
+        
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        
+        .image-upload {
+            border: 2px dashed #ddd;
+            padding: 20px;
+            text-align: center;
+            border-radius: 8px;
+            cursor: pointer;
+            grid-column: span 2;
+        }
+        
+        .image-upload:hover {
+            border-color: #4facfe;
+        }
+        
+        .image-preview {
+            max-width: 100%;
+            max-height: 200px;
+            margin-top: 15px;
+            display: none;
+        }
+        
+        .tabs {
+            display: flex;
+            border-bottom: 2px solid #eee;
+            margin-bottom: 20px;
+            gap: 10px;
+        }
+        
+        .tab {
+            padding: 12px 25px;
+            cursor: pointer;
+            font-weight: bold;
+            color: #666;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s;
+        }
+        
+        .tab.active {
+            color: #3498db;
+            border-bottom: 2px solid #3498db;
+        }
+        
+        .summary-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            font-size: 0.9rem;
+        }
+        
+        .summary-table th, .summary-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .summary-table th {
+            background-color: #f5f7fa;
+            color: #333;
+            font-weight: bold;
+        }
+        
+        .summary-table tr:hover {
+            background-color: #f9f9f9;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .random-points-control {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .points-input {
+            padding: 10px 15px;
+            width: 100px;
+            border-radius: 8px;
+            border: 2px solid #ddd;
+            font-size: 1.1rem;
+            text-align: center;
+        }
+        
+        .product-manage-btns {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+            justify-content: center;
+        }
+        
+        .manage-btn {
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: none;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .deactivate-btn {
+            background: linear-gradient(to right, #f39c12, #f1c40f);
+        }
+        
+        .activate-btn {
+            background: linear-gradient(to right, #2ecc71, #27ae60);
+        }
+        
+        .delete-btn {
+            background: linear-gradient(to right, #e74c3c, #c0392b);
+        }
+        
+        .manage-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+        }
+        
+        .inactive-product {
+            opacity: 0.7;
+            position: relative;
+            background-color: #f5f5f5;
+        }
+        
+        .inactive-product::after {
+            content: "已下架";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-20deg);
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 1.5rem;
+            z-index: 5;
+        }
+        
+        .delete-product-btn {
+            background: linear-gradient(to right, #f44336, #e91e63);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+            margin-top: 5px;
+        }
+        
+        .search-box {
+            padding: 10px 15px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            font-size: 1rem;
+            min-width: 200px;
+        }
+        
+        .delete-all-confirm {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .view-mode-select {
+            padding: 8px 15px;
+            border-radius: 20px;
+            border: none;
+            font-size: 1rem;
+            background: rgba(255, 255, 255, 0.9);
+            box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+            cursor: pointer;
+            outline: none;
+        }
+
+        .groups-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 25px;
+            padding: 40px;
+        }
+
+        .group-card {
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .group-card:nth-child(3n+1) {
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+        }
+
+        .group-card:nth-child(3n+2) {
+            background: linear-gradient(135deg, #f1f8e9, #dcedc8);
+        }
+
+        .group-card:nth-child(3n+3) {
+            background: linear-gradient(135deg, #ffebee, #ffcdd2);
+        }
+
+        .group-delete-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background-color: #ff6b6b;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 16px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        .group-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            cursor: pointer;
+            text-align: center;
+            padding: 5px;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.5);
+        }
+
+        .group-score-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            margin: 15px 0;
+        }
+
+        .group-score {
+            font-size: 2.2rem;
+            font-weight: bold;
+            color: #e74c3c;
+            min-width: 60px;
+            text-align: center;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 5px;
+            transition: all 0.3s;
+        }
+
+        .group-score:hover {
+            background-color: rgba(0,0,0,0.05);
+        }
+
+        .group-score-input {
+            font-size: 2.2rem;
+            font-weight: bold;
+            color: #e74c3c;
+            width: 100px;
+            text-align: center;
+            border: 2px solid #3498db;
+            border-radius: 5px;
+            background: white;
+        }
+
+        .group-student-list {
+            margin-top: 15px;
+            border-top: 1px dashed #ccc;
+            padding-top: 15px;
+        }
+
+        .group-student-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 5px;
+            border-bottom: 1px solid #eee;
+            cursor: move;
+            transition: background-color 0.2s;
+        }
+
+        .group-student-item:hover {
+            background-color: rgba(255, 255, 255, 0.5);
+        }
+
+        .group-student-item:last-child {
+            border-bottom: none;
+        }
+
+        .group-student-name {
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+
+        .group-student-score {
+            font-weight: bold;
+            color: #e74c3c;
+            min-width: 40px;
+            text-align: center;
+        }
+
+        .student-manager-modal .input-group-modal {
+            margin: 15px 0;
+        }
+
+        .student-list {
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 20px;
+            border: 1px solid #eee;
+            border-radius: 10px;
+            padding: 10px;
+        }
+
+        .student-list-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .student-list-item:last-child {
+            border-bottom: none;
+        }
+
+        .student-list-delete {
+            color: #ff6b6b;
+            cursor: pointer;
+            font-size: 1.2rem;
+        }
+
+        .ranking-type-select {
+            padding: 10px 15px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            font-size: 1rem;
+            margin-bottom: 20px;
+            display: block;
+            margin: 0 auto 20px;
+        }
+
+        .history-btn {
+            background: linear-gradient(to right, #673ab7, #9c27b0);
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            margin-top: 10px;
+            display: inline-block;
+        }
+
+        .reason-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 15px 0;
+        }
+
+        .reason-tag {
+            background: linear-gradient(to right, #4facfe, #00f2fe);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .reason-tag .delete-tag {
+            margin-left: 5px;
+            font-size: 0.8rem;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .reason-tag .delete-tag:hover {
+            background: rgba(255,255,255,0.5);
+        }
+
+        .timer-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 20px 0;
+        }
+
+        .timer-display {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #e74c3c;
+            margin: 15px 0;
+        }
+
+        .timer-controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        .timer-btn {
+            padding: 8px 15px;
+            border-radius: 20px;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .timer-start {
+            background: linear-gradient(to right, #4cd964, #2ecc71);
+            color: white;
+        }
+
+        .timer-pause {
+            background: linear-gradient(to right, #f39c12, #f1c40f);
+            color: white;
+        }
+
+        .timer-reset {
+            background: linear-gradient(to right, #e74c3c, #c0392b);
+            color: white;
+        }
+
+        .history-modal-content {
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+
+        .history-item {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .history-details {
+            flex: 1;
+        }
+
+        .history-action {
+            font-weight: bold;
+            color: #e74c3c;
+        }
+
+        .history-reason {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .history-time {
+            color: #999;
+            font-size: 0.8rem;
+        }
+
+        .undo-btn {
+            background: linear-gradient(to right, #ff9800, #ffc107);
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            cursor: pointer;
+        }
+
+        .group-action-btn {
+            background: linear-gradient(to right, #9c27b0, #e91e63);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .student-score-controls {
+            display: flex;
+            gap: 5px;
+        }
+
+        .small-score-btn {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border: none;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .leader-badge {
+            display: inline-block;
+            background: linear-gradient(to right, #ff9800, #ffc107);
+            color: white;
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            border-radius: 10px;
+            margin-left: 5px;
+            font-weight: bold;
+        }
+
+        .group-action-modal {
+            max-width: 500px;
+        }
+
+        .dragging {
+            opacity: 0.5;
+            background-color: #f0f0f0;
+        }
+    </style>
+</head>
+<body>
+    <!-- 密码保护模态框 -->
+    <div class="modal password-modal" id="passwordModal">
+        <div class="password-container">
+            <div class="password-logo">
+                <i class="fas fa-lock"></i>
+            </div>
+            <h2 class="password-title">课堂积分管理系统</h2>
+            <div id="passwordForm">
+                <div class="password-input-group">
+                    <label for="passwordInput">请输入密码：</label>
+                    <input type="password" id="passwordInput" placeholder="输入访问密码">
+                </div>
+                <button class="password-btn" id="loginBtn">登录</button>
+                <div class="password-error" id="passwordError"></div>
+            </div>
+            <div id="changePasswordForm" style="display: none;">
+                <div class="password-input-group">
+                    <label for="oldPassword">原密码：</label>
+                    <input type="password" id="oldPassword" placeholder="输入原密码">
+                </div>
+                <div class="password-input-group">
+                    <label for="newPassword">新密码：</label>
+                    <input type="password" id="newPassword" placeholder="输入新密码">
+                </div>
+                <div class="password-input-group">
+                    <label for="confirmPassword">确认新密码：</label>
+                    <input type="password" id="confirmPassword" placeholder="再次输入新密码">
+                </div>
+                <button class="password-btn" id="savePasswordBtn">保存密码</button>
+                <button class="password-btn cancel-btn" id="cancelChangePassword" style="background: #e0e0e0; color: #666;">取消</button>
+                <div class="password-error" id="changePasswordError"></div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="container" id="appContainer" style="display: none;">
+        <header>
+            <div class="class-controls">
+                <div class="class-title" id="classTitleBtn">
+                    <span>三年(4)班积分系统</span>
+                    <span class="emoji">📚✨</span>
+                </div>
+                <select id="viewMode" class="view-mode-select">
+                    <option value="individual">个人积分</option>
+                    <option value="group">小组积分</option>
+                </select>
+            </div>
+            
+            <div class="step-value">当前步值: <span id="currentStep">1</span></div>
+            
+            <div class="class-manager">
+                <button class="class-btn" id="newClassBtn">
+                    <i class="fas fa-plus-circle"></i> 创建新班级
+                </button>
+                <button class="class-btn" id="switchClassBtn">
+                    <i class="fas fa-exchange-alt"></i> 切换班级
+                </button>
+                <button class="class-btn" id="changePasswordBtn">
+                    <i class="fas fa-key"></i> 修改密码
+                </button>
+                <button class="class-btn" id="timerBtn">
+                    <i class="fas fa-clock"></i> 倒计时
+                </button>
+            </div>
+        </header>
+        
+        <div class="menu-bar">
+            <button class="menu-btn individual-only" id="addAllBtn">
+                <i class="fas fa-user-friends"></i> 全班加分
+            </button>
+            <button class="menu-btn individual-only" id="resetAllBtn">
+                <i class="fas fa-redo"></i> 全班清零
+            </button>
+            <button class="menu-btn" id="rankingBtn">
+                <i class="fas fa-trophy"></i> 排行榜
+            </button>
+            <button class="menu-btn random" id="randomPickBtn">
+                <i class="fas fa-random"></i> 随机点名
+            </button>
+            <label class="file-input-label" for="fileInput">
+                <i class="fas fa-file-import"></i> 导入积分
+            </label>
+            <input type="file" id="fileInput" accept=".xlsx, .xls">
+            <button class="menu-btn" id="exportBtn">
+                <i class="fas fa-file-export"></i> 导出积分
+            </button>
+            <button class="menu-btn" id="studentManagerBtn">
+                <i class="fas fa-users"></i> 学生管理
+            </button>
+            <button class="menu-btn delete" id="deleteAllBtn">
+                <i class="fas fa-trash-alt"></i> 删除所有学生
+            </button>
+            <button class="menu-btn step" id="changeStepBtn">
+                <i class="fas fa-football"></i> 修改步值
+            </button>
+            <button class="menu-btn shop" id="shopBtn">
+                <i class="fas fa-store"></i> 积分商城
+            </button>
+            <button class="menu-btn record" id="recordBtn">
+                <i class="fas fa-history"></i> 兑换记录
+            </button>
+            <button class="menu-btn summary individual-only" id="summaryBtn">
+                <i class="fas fa-calculator"></i> 积分汇总
+            </button>
+            <!-- 小组模式专用按钮 -->
+            <button class="menu-btn group-only" id="addAllGroupsBtn" style="display: none;">
+                <i class="fas fa-users"></i> 全部小组加分
+            </button>
+            <button class="menu-btn group-only" id="resetAllGroupsBtn" style="display: none;">
+                <i class="fas fa-redo"></i> 全部小组清零
+            </button>
+        </div>
+        
+        <div class="student-grid" id="studentGrid">
+            <!-- 学生卡片将通过JS动态生成 -->
+        </div>
+        
+        <div class="groups-container" id="groupsContainer" style="display: none;">
+            <!-- 小组卡片将通过JS动态生成 -->
+        </div>
+    </div>
+    
+    <!-- 排行榜模态框 -->
+    <div class="modal" id="rankingModal">
+        <div class="modal-content">
+            <span class="close-btn" id="closeRanking">&times;</span>
+            <h2 class="modal-title">
+                <i class="fas fa-trophy"></i> 积分排行榜 🏆
+            </h2>
+            <select id="rankingType" class="ranking-type-select">
+                <option value="individual">个人排行榜</option>
+                <option value="group">小组排行榜</option>
+            </select>
+            <ul class="ranking-list" id="rankingList">
+                <!-- 排行榜内容将通过JS动态生成 -->
+            </ul>
+        </div>
+    </div>
+    
+    <!-- 全班加分模态框 -->
+    <div class="modal" id="addScoreModal">
+        <div class="modal-content">
+            <span class="close-btn" id="closeAddScore">&times;</span>
+            <h2 class="modal-title">
+                <i class="fas fa-user-friends"></i> 全班加分
+            </h2>
+            <div class="input-group-modal">
+                <label for="scoreInput">请输入要加减的分数（可正可负）：</label>
+                <input type="number" id="scoreInput" value="0">
+            </div>
+            <div class="input-group-modal">
+                <label>选择原因标签：</label>
+                <div class="reason-tags" id="reasonTags">
+                    <!-- 原因标签将通过JS动态生成 -->
+                </div>
+                <input type="text" id="newReasonInput" placeholder="输入新原因...">
+                <button class="history-btn" id="saveReasonBtn" style="margin-top: 10px;">保存为新标签</button>
+            </div>
+            <div class="action-btns-modal">
+                <button class="confirm-btn" id="confirmAddScore">确定</button>
+                <button class="cancel-btn" id="cancelAddScore">取消</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 学生管理模态框 -->
+    <div class="modal student-manager-modal" id="studentManagerModal">
+        <div class="modal-content">
+            <span class="close-btn" id="closeStudentManager">&times;</span>
+            <h2 class="modal-title">
+                <i class="fas fa-users"></i> 学生管理
+            </h2>
+            <div class="input-group-modal">
+                <label for="managerClassSelect">选择班级：</label>
+                <select id="managerClassSelect">
+                    <!-- 班级选项通过JS动态生成 -->
+                </select>
+            </div>
+            <div class="input-group-modal">
+                <label for="managerGroupSelect">选择小组：</label>
+                <select id="managerGroupSelect">
+                    <!-- 小组选项通过JS动态生成 -->
+                </select>
+            </div>
+            <div class="input-group-modal">
+                <label for="batchStudentsInput">批量添加学生（每行一个姓名）：</label>
+                <textarea id="batchStudentsInput" placeholder="请输入学生姓名，每行一个&#10;例如：&#10;张三&#10;李四&#10;王五"></textarea>
+            </div>
+            <div class="action-btns-modal">
+                <button class="confirm-btn" id="confirmBatchAdd">添加学生</button>
+                <button class="cancel-btn" id="cancelBatchAdd">取消</button>
+            </div>
+            
+            <h3 style="margin-top: 30px;">当前学生列表</h3>
+            <div class="student-list" id="studentList">
+                <!-- 学生列表通过JS动态生成 -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- 修改步值模态框 -->
+    <div class="modal" id="changeStepModal">
+        <div class="modal-content">
+            <span class="close-btn" id="closeChangeStep">&times;</span>
+            <h2 class="modal-title">
+                <i class="fas fa-football"></i> 修改积分步值
+            </h2>
+            <div class="input-group-modal">
+                <label for="stepValueInput">请输入加减分步值：</label>
+                <input type="number" id="stepValueInput" min="1" value="1">
+            </div>
+            <div class="action-btns-modal">
+                <button class="confirm-btn" id="confirmChangeStep">确定</button>
+                <button class="cancel-btn" id="cancelChangeStep">取消</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 编辑学生信息模态框 -->
+    <div class="modal" id="editStudentModal">
+        <div class="modal-content">
+            <span class="close-btn" id="closeEditStudent">&times;</span>
+            <h2 class="modal-title">
+                <i class="fas fa-user-edit"></i> 编辑学生信息
+            </h2>
+            <div class="input-group-modal">
+                <label for="editStudentName">学生姓名：</label>
+                <input type="text" id="editStudentName" placeholder="学生姓名">
+            </div>
+            <div class="input-group-modal">
+                <label for="editStudentScore">积分：</label>
+                <input type="number" id="editStudentScore" placeholder="积分">
+            </div>
+            <div class="input-group-modal">
+                <label for="editStudentGroup">所在小组：</label>
+                <select id="editStudentGroup">
+                    <!-- 小组选项通过JS动态生成 -->
+                </select>
+            </div>
+            <div class="action-btns-modal">
+                <button class="confirm-btn" id="confirmEditStudent">保存更改</button>
+                <button class="cancel-btn" id="cancelEditStudent">取消</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 班级管理模态框 -->
+    <div class="modal" id="classManagerModal">
+        <div class="modal-content class-manager-modal">
+            <span class="close-btn" id="closeClassManager">&times;</span>
+            <h2 class="modal-title" id="modalTitle">
+                <i class="fas fa-chalkboard"></i> 班级管理
+            </h2>
+            <div class="input-group-modal">
+                <label for="classNameInput">班级名称：</label>
+                <input type="text" id="classNameInput" placeholder="输入班级名称">
+            </div>
+            <div class="input-group-modal" id="groupCountContainer">
+                <label for="groupCountInput">小组数量：</label>
+                <input type="number" id="groupCountInput" min="1" max="10" value="4">
+            </div>
+            <div class="action-btns-modal">
+                <button class="confirm-btn" id="confirmClassAction">确定</button>
+                <button class="cancel-btn" id="cancelClassAction">取消</button>
+            </div>
+            
+            <h3 style="text-align: center; margin-top: 30px; margin-bottom: 15px;">
+                <i class="fas fa-list"></i> 所有班级
+            </h3>
+            <div class="class-list" id="classList">
+                <!-- 班级列表将通过JS动态生成 -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- 随机点名模态框 -->
+    <div class="modal" id="randomPickModal">
+        <div class="modal-content">
+            <span class="close-btn" id="closeRandomPick">&times;</span>
+            <h2 class="modal-title">
+                <i class="fas fa-random"></i> 随机点名系统
+            </h2>
+            <div class="random-picker-container">
+                <div class="random-student-display" id="randomStudentDisplay">
+                    点击开始按钮随机选择学生
+                </div>
+                <button class="pick-btn" id="startRandomBtn">开始随机</button>
+                <button class="pick-btn" id="stopRandomBtn" style="display: none; background: linear-gradient(to right, #4facfe, #00f2fe);">停止</button>
+                
+                <div class="random-points-control">
+                    <input type="number" class="points-input" id="pointsInput" value="1" min="1">
+                    <button class="score-btn plus-btn" id="addPointsBtn">加分</button>
+                    <button class="score-btn minus-btn" id="subtractPointsBtn">减分</button>
+                </div>
+                
+                <div class="random-history">
+                    <div class="history-title">点名历史：</div>
+                    <div id="pickHistory"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 积分商城模态框 -->
+    <div class="modal" id="shopModal">
+        <div class="modal-content">
+            <span class="close-btn" id="closeShop">&times;</span>
+            <h2 class="modal-title">
+                <i class="fas fa-store"></i> 积分商城
+            </h2>
+            
+            <div class="tabs">
+                <div class="tab active" data-tab="products">商品列表</div>
+                <div class="tab" data-tab="addProduct">添加商品</div>
+                <div class="tab" data-tab="redeemHistory">兑换记录</div>
+            </div>
+            
+            <div class="tab-content active" id="productsTab">
+                <div class="product-grid" id="productGrid">
+                    <!-- 商品列表通过JS动态生成 -->
+                </div>
+            </div>
+            
+            <div class="tab-content" id="addProductTab" style="display:none;">
+                <div class="product-form">
+                    <div class="form-group">
+                        <label for="productName">商品名称</label>
+                        <input type="text" id="productName" placeholder="输入商品名称">
+                    </div>
+                    <div class="form-group">
+                        <label for="productPoints">所需积分</label>
+                        <input type="number" id="productPoints" min="1" value="10">
+                    </div>
+                    <div class="form-group">
+                        <label for="productStock">库存数量</label>
+                        <input type="number" id="productStock" min="0" value="10">
+                    </div>
+                    <div class="form-group">
+                        <label for="productStatus">商品状态</label>
+                        <select id="productStatus">
+                            <option value="available">上架</option>
+                            <option value="soldout">售罄</option>
+                        </select>
+                    </div>
+                    <div class="image-upload" id="imageUpload">
+                        <i class="fas fa-cloud-upload-alt" style="font-size: 2rem; margin-bottom: 10px;"></i>
+                        <p>点击上传商品图片</p>
+                        <input type="file" id="productImage" accept="image/*" style="display:none;">
+                        <img id="imagePreview" class="image-preview">
+                    </div>
+                    <div class="action-btns-modal" style="grid-column: span 2;">
+                        <button class="confirm-btn" id="saveProductBtn">保存商品</button>
+                        <button class="cancel-btn" id="cancelProductBtn">取消</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="redeemHistoryTab" style="display:none;">
+                <div class="filter-controls">
+                    <select id="monthFilter">
+                        <option value="all">所有月份</option>
+                        <!-- 月份选项通过JS动态生成 -->
+                    </select>
+                    <select id="yearFilter">
+                        <option value="all">所有年份</option>
+                        <!-- 年份选项通过JS动态生成 -->
+                    </select>
+                    <!-- 新增班级筛选 -->
+                    <select id="classFilterRecord">
+                        <option value="all">所有班级</option>
+                        <!-- 班级选项通过JS动态生成 -->
+                    </select>
+                    <button id="applyFilterBtn">应用筛选</button>
+                    <button id="exportRecordBtn">导出记录</button>
+                    <button id="clearHistoryBtn" style="background: linear-gradient(to right, #f44336, #e91e63);">清空历史</button>
+                </div>
+                
+                <table class="record-table">
+                    <thead>
+                        <tr>
+                            <th>学生姓名</th>
+                            <th>班级</th>
+                            <th>商品名称</th>
+                            <th>兑换积分</th>
+                            <th>兑换时间</th>
+                        </tr>
+                    </thead>
+                    <tbody id="redeemHistoryBody">
+                        <!-- 兑换记录通过JS动态生成 -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 积分汇总模态框 -->
+    <div class="modal" id="summaryModal">
+        <div class="modal-content">
+            <span class="close-btn" id="closeSummary">&times;</span>
+            <h2 class="modal-title">
+                <i class="fas fa-calculator"></i> 积分汇总
+            </h2>
+            
+            <div class="filter-controls">
+                <select id="classFilter">
+                    <option value="all">所有班级</option>
+                    <!-- 班级选项通过JS动态生成 -->
+                </select>
+                <!-- 新增学生搜索框 -->
+                <input type="text" id="studentSearch" class="search-box" placeholder="搜索学生姓名">
+                <button id="calculateSummaryBtn">计算汇总</button>
+                <button id="exportSummaryBtn">导出Excel</button>
+            </div>
+            
+            <table class="summary-table">
+                <thead>
+                    <tr>
+                        <th>学生姓名</th>
+                        <th>总分</th>
+                        <th>参与班级数</th>
+                        <th>明细</th>
+                    </tr>
+                </thead>
+                <tbody id="summaryTableBody">
+                    <!-- 汇总数据通过JS动态生成 -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <!-- 删除确认模态框 -->
+    <div class="modal" id="deleteConfirmModal">
+        <div class="modal-content">
+            <span class="close-btn" id="closeDeleteConfirm">&times;</span>
+            <h2 class="modal-title">
+                <i class="fas fa-exclamation-triangle"></i> 确认删除
+            </h2>
+            <div class="input-group-modal">
+                <p id="deleteConfirmText">您确定要删除吗？此操作不可恢复！</p>
+            </div>
+            <div class="action-btns-modal">
+                <button class="confirm-btn" id="confirmDelete">确定删除</button>
+                <button class="cancel-btn" id="cancelDelete">取消</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 操作记录模态框 -->
+    <div class="modal" id="historyModal">
+        <div class="modal-content history-modal-content">
+            <span class="close-btn" id="closeHistory">&times;</span>
+            <h2 class="modal-title">
+                <i class="fas fa-history"></i> 操作记录
+            </h2>
+            <div id="historyContent">
+                <!-- 操作记录将通过JS动态生成 -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- 加减分原因模态框 -->
+    <div class="modal" id="reasonModal">
+        <div class="modal-content">
+            <span class="close-btn" id="closeReason">&times;</span>
+            <h2 class="modal-title">
+                <i class="fas fa-tag"></i> 选择加减分原因
+            </h2>
+            <div class="input-group-modal">
+                <label>选择原因标签：</label>
+                <div class="reason-tags" id="modalReasonTags">
+                    <!-- 原因标签将通过JS动态生成 -->
+                </div>
+                <input type="text" id="modalNewReasonInput" placeholder="输入新原因...">
+                <button class="history-btn" id="modalSaveReasonBtn" style="margin-top: 10px;">保存为新标签</button>
+            </div>
+            <div class="action-btns-modal">
+                <button class="confirm-btn" id="confirmReason">确定</button>
+                <button class="cancel-btn" id="cancelReason">取消</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 倒计时模态框 -->
+    <div class="modal" id="timerModal">
+        <div class="modal-content">
+            <span class="close-btn" id="closeTimer">&times;</span>
+            <h2 class="modal-title">
+                <i class="fas fa-clock"></i> 倒计时器
+            </h2>
+            <div class="timer-container">
+                <div class="input-group-modal">
+                    <label for="timerMinutes">设置倒计时（分钟）：</label>
+                    <input type="number" id="timerMinutes" min="1" max="60" value="5">
+                </div>
+                <div class="timer-display" id="timerDisplay">05:00</div>
+                <div class="timer-controls">
+                    <button class="timer-btn timer-start" id="timerStartBtn">开始</button>
+                    <button class="timer-btn timer-pause" id="timerPauseBtn">暂停</button>
+                    <button class="timer-btn timer-reset" id="timerResetBtn">重置</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 小组操作模态框 -->
+    <div class="modal" id="groupActionModal">
+        <div class="modal-content group-action-modal">
+            <span class="close-btn" id="closeGroupAction">&times;</span>
+            <h2 class="modal-title">
+                <i class="fas fa-users"></i> 小组积分操作
+            </h2>
+            <div class="input-group-modal">
+                <label for="groupActionScore">请输入要加减的分数（可正可负）：</label>
+                <input type="number" id="groupActionScore" value="0">
+            </div>
+            <div class="input-group-modal">
+                <label>选择原因标签：</label>
+                <div class="reason-tags" id="groupActionReasonTags">
+                    <!-- 原因标签将通过JS动态生成 -->
+                </div>
+                <input type="text" id="groupActionNewReasonInput" placeholder="输入新原因...">
+                <button class="history-btn" id="groupActionSaveReasonBtn" style="margin-top: 10px;">保存为新标签</button>
+            </div>
+            <div class="action-btns-modal">
+                <button class="confirm-btn" id="confirmGroupAction">确定</button>
+                <button class="cancel-btn" id="cancelGroupAction">取消</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 购物车弹出层 -->
+    <div class="cart-popup" id="cartPopup">
+        <div class="cart-header">
+            <span>我的积分购物车</span>
+            <span class="cart-close"><i class="fas fa-times"></i></span>
+        </div>
+        <div class="cart-body" id="cartBody">
+            <!-- 购物车内容通过JS动态生成 -->
+        </div>
+        <div class="cart-footer">
+            <div class="cart-total">总需积分: <span id="cartTotalPoints">0</span></div>
+            <button class="checkout-btn" id="checkoutBtn">兑换</button>
+        </div>
+    </div>
+    
+    <!-- 通知 -->
+    <div class="notification" id="notification">
+        <i class="fas fa-check-circle"></i> 操作成功！
+    </div>
+
+    <script>
+        // 初始化班级和学生数据
+        let classes = {};
+        let currentClass = "三年(4)班";
+        let stepValue = 1; // 加减分步值
+        let currentEditIndex = -1; // 当前编辑的学生索引
+        let randomPickInterval = null;
+        let randomPickHistory = [];
+        let products = [];
+        let redeemHistory = [];
+        let cart = [];
+        let currentStudentCart = null;
+        let currentTab = 'products';
+        let currentSelectedStudent = null;
+        let viewMode = 'individual'; // 默认个人积分模式
+        let currentDeleteTarget = null; // 当前要删除的目标
+        let deleteType = ''; // 删除类型：class, group, student
+        let currentAdjustType = ''; // 当前加减分类型：individual, group, all
+        let currentAdjustIndex = -1; // 当前加减分对象索引
+        let currentAdjustGroup = ''; // 当前加减分小组名称
+        let reasonTags = []; // 加减分原因标签
+        let timerInterval = null; // 倒计时定时器
+        let timerSeconds = 0; // 倒计时剩余秒数
+        let timerRunning = false; // 倒计时是否运行中
+        let draggingStudent = null; // 当前拖拽的学生
+        let dragSourceGroup = null; // 拖拽源小组
+        let currentScoreChange = 0; // 当前加减分数量
+        
+        // DOM元素
+        const studentGrid = document.getElementById('studentGrid');
+        const groupsContainer = document.getElementById('groupsContainer');
+        const rankingModal = document.getElementById('rankingModal');
+        const addScoreModal = document.getElementById('addScoreModal');
+        const studentManagerModal = document.getElementById('studentManagerModal');
+        const changeStepModal = document.getElementById('changeStepModal');
+        const editStudentModal = document.getElementById('editStudentModal');
+        const classManagerModal = document.getElementById('classManagerModal');
+        const randomPickModal = document.getElementById('randomPickModal');
+        const fileInput = document.getElementById('fileInput');
+        const notification = document.getElementById('notification');
+        const classTitleBtn = document.getElementById('classTitleBtn');
+        const currentStepSpan = document.getElementById('currentStep');
+        const passwordModal = document.getElementById('passwordModal');
+        const appContainer = document.getElementById('appContainer');
+        const shopModal = document.getElementById('shopModal');
+        const summaryModal = document.getElementById('summaryModal');
+        const cartPopup = document.getElementById('cartPopup');
+        const cartBody = document.getElementById('cartBody');
+        const cartTotalPoints = document.getElementById('cartTotalPoints');
+        const productGrid = document.getElementById('productGrid');
+        const redeemHistoryBody = document.getElementById('redeemHistoryBody');
+        const summaryTableBody = document.getElementById('summaryTableBody');
+        const viewModeSelect = document.getElementById('viewMode');
+        const deleteConfirmModal = document.getElementById('deleteConfirmModal');
+        const historyModal = document.getElementById('historyModal');
+        const reasonModal = document.getElementById('reasonModal');
+        const timerModal = document.getElementById('timerModal');
+        const groupActionModal = document.getElementById('groupActionModal');
+        
+        // 从localStorage加载数据
+        function loadData() {
+            const savedClasses = localStorage.getItem('classPointsSystem');
+            if (savedClasses) {
+                classes = JSON.parse(savedClasses);
+            } else {
+                // 默认班级和学生
+                classes = {
+                    "三年(4)班": {
+                        students: [
+                            { name: "小明", score: 85, group: "第一组", history: [], isLeader: true },
+                            { name: "小红", score: 92, group: "第一组", history: [], isLeader: false },
+                            { name: "小刚", score: 78, group: "第二组", history: [], isLeader: true },
+                            { name: "小丽", score: 95, group: "第二组", history: [], isLeader: false },
+                            { name: "小华", score: 88, group: "第三组", history: [], isLeader: true },
+                            { name: "小强", score: 76, group: "第三组", history: [], isLeader: false },
+                            { name: "小美", score: 90, group: "第四组", history: [], isLeader: true },
+                            { name: "小林", score: 82, group: "第四组", history: [], isLeader: false },
+                            { name: "小芳", score: 89, group: "第一组", history: [], isLeader: false },
+                            { name: "小杰", score: 93, group: "第二组", history: [], isLeader: false }
+                        ],
+                        groups: ["第一组", "第二组", "第三组", "第四组"],
+                        groupScores: {
+                            "第一组": 0,
+                            "第二组": 0,
+                            "第三组": 0,
+                            "第四组": 0
+                        }
+                    },
+                    "四年(2)班": {
+                        students: [
+                            { name: "张伟", score: 80, group: "A组", history: [], isLeader: true },
+                            { name: "李娜", score: 87, group: "A组", history: [], isLeader: false },
+                            { name: "王芳", score: 91, group: "B组", history: [], isLeader: true },
+                            { name: "刘洋", score: 84, group: "B组", history: [], isLeader: false }
+                        ],
+                        groups: ["A组", "B组"],
+                        groupScores: {
+                            "A组": 0,
+                            "B组": 0
+                        }
+                    }
+                };
+            }
+            
+            // 加载商品数据
+            const savedProducts = localStorage.getItem('classProducts');
+            if (savedProducts) {
+                products = JSON.parse(savedProducts);
+            } else {
+                // 默认商品
+                products = [
+                    {
+                        id: 1,
+                        name: "精美笔记本",
+                        points: 20,
+                        stock: 15,
+                        status: "available",
+                        image: null
+                    },
+                    {
+                        id: 2,
+                        name: "卡通文具盒",
+                        points: 35,
+                        stock: 8,
+                        status: "available",
+                        image: null
+                    },
+                    {
+                        id: 3,
+                        name: "彩色画笔套装",
+                        points: 50,
+                        stock: 5,
+                        status: "available",
+                        image: null
+                    },
+                    {
+                        id: 4,
+                        name: "限量版橡皮",
+                        points: 15,
+                        stock: 0,
+                        status: "soldout",
+                        image: null
+                    }
+                ];
+            }
+            
+            // 加载兑换记录
+            const savedHistory = localStorage.getItem('redeemHistory');
+            if (savedHistory) {
+                redeemHistory = JSON.parse(savedHistory);
+            }
+            
+            // 加载当前班级
+            const savedCurrentClass = localStorage.getItem('currentClass');
+            if (savedCurrentClass) {
+                currentClass = savedCurrentClass;
+            }
+            
+            // 加载步值
+            const savedStepValue = localStorage.getItem('stepValue');
+            if (savedStepValue) {
+                stepValue = parseInt(savedStepValue) || 1;
+            }
+            
+            // 加载视图模式
+            const savedViewMode = localStorage.getItem('viewMode');
+            if (savedViewMode) {
+                viewMode = savedViewMode;
+                viewModeSelect.value = viewMode;
+            }
+            
+            // 加载原因标签
+            const savedReasonTags = localStorage.getItem('reasonTags');
+            if (savedReasonTags) {
+                reasonTags = JSON.parse(savedReasonTags);
+            } else {
+                reasonTags = ["回答问题", "作业优秀", "课堂表现", "迟到", "未交作业"];
+            }
+            
+            updateClassTitle();
+            updateStepValue();
+            updateViewMode();
+            saveData();
+        }
+        
+        // 保存数据到localStorage
+        function saveData() {
+            localStorage.setItem('classPointsSystem', JSON.stringify(classes));
+            localStorage.setItem('classProducts', JSON.stringify(products));
+            localStorage.setItem('redeemHistory', JSON.stringify(redeemHistory));
+            localStorage.setItem('currentClass', currentClass);
+            localStorage.setItem('stepValue', stepValue);
+            localStorage.setItem('viewMode', viewMode);
+            localStorage.setItem('reasonTags', JSON.stringify(reasonTags));
+        }
+        
+        // 更新班级标题
+        function updateClassTitle() {
+            classTitleBtn.innerHTML = `
+                <span>${currentClass}积分系统</span>
+                <span class="emoji">📚✨</span>
+            `;
+        }
+        
+        // 更新步值显示
+        function updateStepValue() {
+            currentStepSpan.textContent = stepValue;
+        }
+        
+        // 更新视图模式
+        function updateViewMode() {
+            if (viewMode === 'individual') {
+                studentGrid.style.display = 'grid';
+                groupsContainer.style.display = 'none';
+                // 显示个人模式按钮
+                document.querySelectorAll('.individual-only').forEach(btn => {
+                    btn.style.display = 'flex';
+                });
+                // 隐藏小组模式专用按钮
+                document.querySelectorAll('.group-only').forEach(btn => {
+                    btn.style.display = 'none';
+                });
+                renderStudents();
+            } else {
+                studentGrid.style.display = 'none';
+                groupsContainer.style.display = 'grid';
+                // 隐藏个人模式按钮
+                document.querySelectorAll('.individual-only').forEach(btn => {
+                    btn.style.display = 'none';
+                });
+                // 显示小组模式专用按钮
+                document.querySelectorAll('.group-only').forEach(btn => {
+                    btn.style.display = 'flex';
+                });
+                renderGroups();
+            }
+        }
+        
+        // 渲染学生卡片
+        function renderStudents() {
+            studentGrid.innerHTML = '';
+            
+            const classData = classes[currentClass];
+            if (!classData || !classData.students || classData.students.length === 0) {
+                studentGrid.innerHTML = '<div class="empty-state"><i class="fas fa-user-graduate"></i> 暂无学生数据，请添加学生或导入数据</div>';
+                return;
+            }
+            
+            const students = classData.students;
+            
+            students.forEach((student, index) => {
+                const rowIndex = Math.floor(index / 5) % 5;
+                const card = document.createElement('div');
+                card.className = `student-card row-${rowIndex}`;
+                card.innerHTML = `
+                    <div class="edit-student" data-index="${index}">
+                        <i class="fas fa-edit"></i>
+                    </div>
+                    <div class="delete-student" data-index="${index}">
+                        <i class="fas fa-times"></i>
+                    </div>
+                    <div class="cart-icon" data-index="${index}">
+                        <i class="fas fa-shopping-cart"></i>
+                    </div>
+                    <div class="student-name" data-index="${index}">${student.name}</div>
+                    <div class="score-container">
+                        <button class="score-btn minus-btn" data-index="${index}" data-type="minus">-</button>
+                        <div class="student-score" id="score-${index}" data-index="${index}">${student.score}</div>
+                        <button class="score-btn plus-btn" data-index="${index}" data-type="plus">+</button>
+                    </div>
+                    <button class="history-btn" data-index="${index}">
+                        <i class="fas fa-history"></i> 操作记录
+                    </button>
+                `;
+                studentGrid.appendChild(card);
+            });
+            
+            // 添加事件监听
+            document.querySelectorAll('.minus-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const index = parseInt(btn.dataset.index);
+                    currentAdjustType = 'individual';
+                    currentAdjustIndex = index;
+                    currentAdjustGroup = '';
+                    currentScoreChange = -stepValue;
+                    showReasonModal();
+                });
+            });
+            
+            document.querySelectorAll('.plus-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const index = parseInt(btn.dataset.index);
+                    currentAdjustType = 'individual';
+                    currentAdjustIndex = index;
+                    currentAdjustGroup = '';
+                    currentScoreChange = stepValue;
+                    showReasonModal();
+                });
+            });
+            
+            document.querySelectorAll('.edit-student').forEach(btn => {
+                btn.addEventListener('click', () => editStudent(parseInt(btn.dataset.index)));
+            });
+            
+            document.querySelectorAll('.delete-student').forEach(btn => {
+                btn.addEventListener('click', () => deleteStudent(parseInt(btn.dataset.index)));
+            });
+            
+            document.querySelectorAll('.student-name').forEach(el => {
+                el.addEventListener('click', (e) => editStudent(parseInt(e.target.dataset.index)));
+            });
+            
+            document.querySelectorAll('.student-score').forEach(el => {
+                el.addEventListener('click', (e) => editStudent(parseInt(e.target.dataset.index)));
+            });
+            
+            document.querySelectorAll('.cart-icon').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const index = parseInt(e.currentTarget.dataset.index);
+                    openCart(index);
+                });
+            });
+            
+            document.querySelectorAll('.history-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const index = parseInt(e.currentTarget.dataset.index);
+                    showStudentHistory(index);
+                });
+            });
+        }
+        
+        // 渲染小组卡片
+        function renderGroups() {
+            groupsContainer.innerHTML = '';
+            
+            const classData = classes[currentClass];
+            if (!classData || !classData.groups || classData.groups.length === 0) {
+                groupsContainer.innerHTML = '<div class="empty-state" style="grid-column: 1 / -1;"><i class="fas fa-users"></i> 暂无小组数据</div>';
+                return;
+            }
+            
+            const groups = classData.groups;
+            const students = classData.students || [];
+            const groupScores = classData.groupScores || {};
+            
+            groups.forEach((groupName, groupIndex) => {
+                const groupStudents = students.filter(s => s.group === groupName);
+                const groupScore = groupScores[groupName] || 0;
+                
+                const groupCard = document.createElement('div');
+                groupCard.className = 'group-card';
+                groupCard.innerHTML = `
+                    <div class="group-delete-btn" data-group="${groupName}">
+                        <i class="fas fa-times"></i>
+                    </div>
+                    <div class="group-title" data-group="${groupName}">${groupName}</div>
+                    <div class="group-score-container">
+                        <button class="score-btn minus-btn" data-group="${groupName}">-</button>
+                        <div class="group-score" data-group="${groupName}">${groupScore}</div>
+                        <button class="score-btn plus-btn" data-group="${groupName}">+</button>
+                    </div>
+                    <button class="group-action-btn" data-group="${groupName}">
+                        <i class="fas fa-cog"></i> 小组积分操作
+                    </button>
+                    <div class="group-student-list" id="group-${groupName}">
+                        ${groupStudents.map((student, idx) => `
+                            <div class="group-student-item" draggable="true" data-name="${student.name}" data-group="${groupName}">
+                                <span class="group-student-name">
+                                    ${student.name}
+                                    ${student.isLeader ? '<span class="leader-badge">组长</span>' : ''}
+                                </span>
+                                <span class="group-student-score">${student.score}</span>
+                                <div class="student-score-controls">
+                                    <button class="small-score-btn minus-btn" data-type="group-student" data-group="${groupName}" data-name="${student.name}">-</button>
+                                    <button class="small-score-btn plus-btn" data-type="group-student" data-group="${groupName}" data-name="${student.name}">+</button>
+                                </div>
+                                <button class="history-btn" data-name="${student.name}" style="margin-left: 5px;">
+                                    <i class="fas fa-history"></i>
+                                </button>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+                
+                groupsContainer.appendChild(groupCard);
+            });
+            
+            // 添加小组事件监听
+            document.querySelectorAll('.group-title').forEach(el => {
+                el.addEventListener('click', (e) => {
+                    const groupName = e.target.dataset.group;
+                    renameGroup(groupName);
+                });
+            });
+            
+            document.querySelectorAll('.group-delete-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const groupName = e.currentTarget.dataset.group;
+                    deleteGroup(groupName);
+                });
+            });
+            
+            document.querySelectorAll('.group-card .minus-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const groupName = btn.dataset.group;
+                    adjustGroupScore(groupName, -stepValue);
+                });
+            });
+            
+            document.querySelectorAll('.group-card .plus-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const groupName = btn.dataset.group;
+                    adjustGroupScore(groupName, stepValue);
+                });
+            });
+            
+            document.querySelectorAll('.group-action-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const groupName = btn.dataset.group;
+                    currentAdjustType = 'group-all';
+                    currentAdjustGroup = groupName;
+                    showGroupActionModal();
+                });
+            });
+            
+            document.querySelectorAll('.group-student-item .minus-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const studentName = btn.dataset.name;
+                    const groupName = btn.dataset.group;
+                    currentAdjustType = 'individual';
+                    currentAdjustIndex = findStudentIndex(studentName);
+                    currentAdjustGroup = groupName;
+                    currentScoreChange = -stepValue;
+                    showReasonModal();
+                });
+            });
+            
+            document.querySelectorAll('.group-student-item .plus-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const studentName = btn.dataset.name;
+                    const groupName = btn.dataset.group;
+                    currentAdjustType = 'individual';
+                    currentAdjustIndex = findStudentIndex(studentName);
+                    currentAdjustGroup = groupName;
+                    currentScoreChange = stepValue;
+                    showReasonModal();
+                });
+            });
+            
+            document.querySelectorAll('.group-student-item .history-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const studentName = btn.dataset.name;
+                    const index = findStudentIndex(studentName);
+                    showStudentHistory(index);
+                });
+            });
+            
+            // 添加小组积分编辑功能
+            document.querySelectorAll('.group-score').forEach(el => {
+                el.addEventListener('click', (e) => {
+                    const groupName = e.target.dataset.group;
+                    editGroupScore(groupName);
+                });
+            });
+            
+            // 添加拖拽功能
+            setupDragAndDrop();
+        }
+        
+        // 设置拖拽功能
+        function setupDragAndDrop() {
+            const studentItems = document.querySelectorAll('.group-student-item');
+            
+            studentItems.forEach(item => {
+                item.addEventListener('dragstart', handleDragStart);
+                item.addEventListener('dragover', handleDragOver);
+                item.addEventListener('dragenter', handleDragEnter);
+                item.addEventListener('dragleave', handleDragLeave);
+                item.addEventListener('drop', handleDrop);
+                item.addEventListener('dragend', handleDragEnd);
+            });
+        }
+        
+        // 拖拽开始
+        function handleDragStart(e) {
+            draggingStudent = this;
+            dragSourceGroup = this.dataset.group;
+            this.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', this.dataset.name);
+        }
+        
+        // 拖拽经过
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+        }
+        
+        // 拖拽进入
+        function handleDragEnter(e) {
+            this.classList.add('drag-over');
+        }
+        
+        // 拖拽离开
+        function handleDragLeave(e) {
+            this.classList.remove('drag-over');
+        }
+        
+        // 放置
+        function handleDrop(e) {
+            e.preventDefault();
+            this.classList.remove('drag-over');
+            
+            const studentName = e.dataTransfer.getData('text/plain');
+            const targetGroup = this.closest('.group-student-list').id.replace('group-', '');
+            
+            if (dragSourceGroup !== targetGroup) {
+                // 移动到不同小组
+                moveStudentToGroup(studentName, targetGroup);
+            } else {
+                // 在同一小组内调整位置
+                const sourceIndex = Array.from(this.parentNode.children).indexOf(draggingStudent);
+                const targetIndex = Array.from(this.parentNode.children).indexOf(this);
+                
+                if (sourceIndex !== targetIndex) {
+                    const classData = classes[currentClass];
+                    const students = classData.students;
+                    
+                    // 找到学生在数组中的位置
+                    const studentIndex = students.findIndex(s => s.name === studentName);
+                    if (studentIndex !== -1) {
+                        // 更新小组内学生的顺序
+                        const groupStudents = students.filter(s => s.group === targetGroup);
+                        
+                        // 交换位置
+                        const sourceStudent = groupStudents[sourceIndex];
+                        const targetStudent = groupStudents[targetIndex];
+                        
+                        // 交换学生在数组中的位置
+                        const sourceGlobalIndex = students.findIndex(s => s.name === sourceStudent.name);
+                        const targetGlobalIndex = students.findIndex(s => s.name === targetStudent.name);
+                        
+                        [students[sourceGlobalIndex], students[targetGlobalIndex]] = [students[targetGlobalIndex], students[sourceGlobalIndex]];
+                        
+                        saveData();
+                        renderGroups();
+                        showNotification(`已调整 ${studentName} 的位置`);
+                    }
+                }
+            }
+        }
+        
+        // 拖拽结束
+        function handleDragEnd(e) {
+            this.classList.remove('dragging');
+            document.querySelectorAll('.group-student-item').forEach(item => {
+                item.classList.remove('drag-over');
+            });
+            draggingStudent = null;
+            dragSourceGroup = null;
+        }
+        
+        // 移动学生到不同小组
+        function moveStudentToGroup(studentName, targetGroup) {
+            const classData = classes[currentClass];
+            const students = classData.students;
+            const studentIndex = students.findIndex(s => s.name === studentName);
+            
+            if (studentIndex !== -1) {
+                students[studentIndex].group = targetGroup;
+                
+                // 更新组长状态
+                updateGroupLeaders();
+                
+                saveData();
+                renderGroups();
+                showNotification(`已将 ${studentName} 移动到 ${targetGroup}`);
+            }
+        }
+        
+        // 更新小组组长
+        function updateGroupLeaders() {
+            const classData = classes[currentClass];
+            const groups = classData.groups || [];
+            
+            groups.forEach(groupName => {
+                const groupStudents = classData.students.filter(s => s.group === groupName);
+                
+                // 清除该小组的所有组长标记
+                groupStudents.forEach(student => {
+                    student.isLeader = false;
+                });
+                
+                // 设置第一个学生为组长
+                if (groupStudents.length > 0) {
+                    const firstStudent = groupStudents[0];
+                    const studentIndex = classData.students.findIndex(s => s.name === firstStudent.name);
+                    if (studentIndex !== -1) {
+                        classData.students[studentIndex].isLeader = true;
+                    }
+                }
+            });
+        }
+        
+        // 编辑小组积分
+        function editGroupScore(groupName) {
+            const classData = classes[currentClass];
+            const currentScore = classData.groupScores[groupName] || 0;
+            
+            const groupScoreElement = document.querySelector(`.group-score[data-group="${groupName}"]`);
+            const input = document.createElement('input');
+            input.type = 'number';
+            input.className = 'group-score-input';
+            input.value = currentScore;
+            
+            groupScoreElement.innerHTML = '';
+            groupScoreElement.appendChild(input);
+            input.focus();
+            input.select();
+            
+            const saveScore = () => {
+                const newScore = parseInt(input.value) || 0;
+                classData.groupScores[groupName] = newScore;
+                saveData();
+                renderGroups();
+            };
+            
+            input.addEventListener('blur', saveScore);
+            input.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    saveScore();
+                }
+            });
+        }
+        
+        // 调整小组积分（直接加减，无需原因）
+        function adjustGroupScore(groupName, change) {
+            const classData = classes[currentClass];
+            if (!classData.groupScores) {
+                classData.groupScores = {};
+            }
+            
+            if (!classData.groupScores[groupName]) {
+                classData.groupScores[groupName] = 0;
+            }
+            
+            classData.groupScores[groupName] += change;
+            saveData();
+            renderGroups();
+            
+            showNotification(`已${change > 0 ? '增加' : '减少'} ${groupName} ${Math.abs(change)} 分`);
+        }
+        
+        // 查找学生索引
+        function findStudentIndex(studentName) {
+            const students = classes[currentClass].students;
+            for (let i = 0; i < students.length; i++) {
+                if (students[i].name === studentName) {
+                    return i;
+                }
+            }
+            return -1;
+        }
+        
+        // 显示原因模态框
+        function showReasonModal() {
+            renderReasonTags();
+            reasonModal.style.display = 'flex';
+        }
+        
+        // 显示小组操作模态框
+        function showGroupActionModal() {
+            renderGroupActionReasonTags();
+            groupActionModal.style.display = 'flex';
+        }
+        
+        // 渲染原因标签
+        function renderReasonTags() {
+            const modalReasonTags = document.getElementById('modalReasonTags');
+            modalReasonTags.innerHTML = '';
+            
+            reasonTags.forEach((tag, index) => {
+                const tagElement = document.createElement('div');
+                tagElement.className = 'reason-tag';
+                tagElement.innerHTML = `
+                    ${tag}
+                    <span class="delete-tag" data-index="${index}">×</span>
+                `;
+                modalReasonTags.appendChild(tagElement);
+                
+                tagElement.addEventListener('click', () => {
+                    document.getElementById('modalNewReasonInput').value = tag;
+                });
+                
+                const deleteBtn = tagElement.querySelector('.delete-tag');
+                deleteBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    reasonTags.splice(index, 1);
+                    saveData();
+                    renderReasonTags();
+                });
+            });
+        }
+        
+        // 渲染小组操作原因标签
+        function renderGroupActionReasonTags() {
+            const groupActionReasonTags = document.getElementById('groupActionReasonTags');
+            groupActionReasonTags.innerHTML = '';
+            
+            reasonTags.forEach((tag, index) => {
+                const tagElement = document.createElement('div');
+                tagElement.className = 'reason-tag';
+                tagElement.innerHTML = `
+                    ${tag}
+                    <span class="delete-tag" data-index="${index}">×</span>
+                `;
+                groupActionReasonTags.appendChild(tagElement);
+                
+                tagElement.addEventListener('click', () => {
+                    document.getElementById('groupActionNewReasonInput').value = tag;
+                });
+                
+                const deleteBtn = tagElement.querySelector('.delete-tag');
+                deleteBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    reasonTags.splice(index, 1);
+                    saveData();
+                    renderGroupActionReasonTags();
+                });
+            });
+        }
+        
+        // 处理加减分操作
+        function handleScoreAdjustment(change, reason) {
+            const classData = classes[currentClass];
+            
+            if (currentAdjustType === 'individual') {
+                // 个人加减分
+                const students = classData.students;
+                if (!students || currentAdjustIndex >= students.length) return false;
+                
+                students[currentAdjustIndex].score += change;
+                
+                // 记录操作历史
+                students[currentAdjustIndex].history.unshift({
+                    type: change > 0 ? '加分' : '减分',
+                    amount: Math.abs(change),
+                    reason: reason,
+                    timestamp: new Date().toISOString()
+                });
+                
+                saveData();
+                
+                if (viewMode === 'individual') {
+                    renderStudents();
+                } else {
+                    renderGroups();
+                }
+                
+                showNotification(`已${change > 0 ? '增加' : '减少'} ${students[currentAdjustIndex].name} ${Math.abs(change)} 分，原因: ${reason}`);
+                
+            } else if (currentAdjustType === 'group-all') {
+                // 小组所有成员加减分
+                const students = classData.students;
+                if (!students) return false;
+                
+                let count = 0;
+                students.forEach(student => {
+                    if (student.group === currentAdjustGroup) {
+                        student.score += change;
+                        count++;
+                        
+                        // 记录操作历史
+                        student.history.unshift({
+                            type: change > 0 ? '加分' : '减分',
+                            amount: Math.abs(change),
+                            reason: reason,
+                            timestamp: new Date().toISOString()
+                        });
+                    }
+                });
+                
+                saveData();
+                
+                if (viewMode === 'individual') {
+                    renderStudents();
+                } else {
+                    renderGroups();
+                }
+                
+                showNotification(`已${change > 0 ? '增加' : '减少'} ${currentAdjustGroup} 所有学生 ${Math.abs(change)} 分，原因: ${reason}`);
+            }
+            
+            return true;
+        }
+        
+        // 处理小组操作
+        function handleGroupAction(change, reason) {
+            const classData = classes[currentClass];
+            const students = classData.students;
+            if (!students) return false;
+            
+            let count = 0;
+            students.forEach(student => {
+                if (student.group === currentAdjustGroup) {
+                    student.score += change;
+                    count++;
+                    
+                    // 记录操作历史
+                    student.history.unshift({
+                        type: change > 0 ? '加分' : '减分',
+                        amount: Math.abs(change),
+                        reason: reason,
+                        timestamp: new Date().toISOString()
+                    });
+                }
+            });
+            
+            saveData();
+            renderGroups();
+            
+            showNotification(`已${change > 0 ? '增加' : '减少'} ${currentAdjustGroup} 所有学生 ${Math.abs(change)} 分，原因: ${reason}`);
+            return true;
+        }
+        
+        // 显示学生操作历史
+        function showStudentHistory(index) {
+            const student = classes[currentClass].students[index];
+            const historyContent = document.getElementById('historyContent');
+            
+            historyContent.innerHTML = `
+                <h3 style="text-align: center; margin-bottom: 20px;">${student.name}的操作记录</h3>
+            `;
+            
+            if (!student.history || student.history.length === 0) {
+                historyContent.innerHTML += '<div class="empty-state">暂无操作记录</div>';
+            } else {
+                student.history.forEach((record, idx) => {
+                    const date = new Date(record.timestamp);
+                    const dateStr = `${date.getFullYear()}-${(date.getMonth()+1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+                    
+                    const historyItem = document.createElement('div');
+                    historyItem.className = 'history-item';
+                    historyItem.innerHTML = `
+                        <div class="history-details">
+                            <div class="history-action">${record.type} ${record.amount}分</div>
+                            <div class="history-reason">原因: ${record.reason}</div>
+                            <div class="history-time">时间: ${dateStr}</div>
+                        </div>
+                        <button class="undo-btn" data-index="${index}" data-history="${idx}">
+                            撤销
+                        </button>
+                    `;
+                    historyContent.appendChild(historyItem);
+                    
+                    const undoBtn = historyItem.querySelector('.undo-btn');
+                    undoBtn.addEventListener('click', () => {
+                        undoStudentHistory(index, idx);
+                    });
+                });
+            }
+            
+            historyModal.style.display = 'flex';
+        }
+        
+        // 撤销学生操作历史
+        function undoStudentHistory(studentIndex, historyIndex) {
+            const student = classes[currentClass].students[studentIndex];
+            const record = student.history[historyIndex];
+            
+            // 撤销分数变更
+            if (record.type === '加分') {
+                student.score -= record.amount;
+            } else {
+                student.score += record.amount;
+            }
+            
+            // 移除历史记录
+            student.history.splice(historyIndex, 1);
+            
+            saveData();
+            
+            if (viewMode === 'individual') {
+                renderStudents();
+            } else {
+                renderGroups();
+            }
+            
+            historyModal.style.display = 'none';
+            showNotification(`已撤销对 ${student.name} 的操作`);
+        }
+        
+        // 编辑学生信息
+        function editStudent(index) {
+            const students = classes[currentClass].students;
+            if (!students || index >= students.length) return;
+            
+            currentEditIndex = index;
+            const student = students[index];
+            
+            document.getElementById('editStudentName').value = student.name;
+            document.getElementById('editStudentScore').value = student.score;
+            
+            // 填充小组选择框
+            const groupSelect = document.getElementById('editStudentGroup');
+            groupSelect.innerHTML = '';
+            
+            const groups = classes[currentClass].groups || [];
+            groups.forEach(group => {
+                const option = document.createElement('option');
+                option.value = group;
+                option.textContent = group;
+                if (group === student.group) {
+                    option.selected = true;
+                }
+                groupSelect.appendChild(option);
+            });
+            
+            editStudentModal.style.display = 'flex';
+        }
+        
+        // 保存学生编辑
+        function saveStudentEdit() {
+            if (currentEditIndex === -1) return;
+            
+            const students = classes[currentClass].students;
+            const name = document.getElementById('editStudentName').value.trim();
+            const score = parseInt(document.getElementById('editStudentScore').value) || 0;
+            const group = document.getElementById('editStudentGroup').value;
+            
+            if (!name) {
+                showNotification('学生姓名不能为空', true);
+                return;
+            }
+            
+            students[currentEditIndex].name = name;
+            students[currentEditIndex].score = score;
+            students[currentEditIndex].group = group;
+            
+            // 更新组长状态
+            updateGroupLeaders();
+            
+            saveData();
+            
+            if (viewMode === 'individual') {
+                renderStudents();
+            } else {
+                renderGroups();
+            }
+            
+            editStudentModal.style.display = 'none';
+            currentEditIndex = -1;
+            
+            showNotification('学生信息已更新');
+        }
+        
+        // 删除学生
+        function deleteStudent(index) {
+            const students = classes[currentClass].students;
+            if (!students || index >= students.length) return;
+            
+            const studentName = students[index].name;
+            currentDeleteTarget = index;
+            deleteType = 'student';
+            
+            document.getElementById('deleteConfirmText').textContent = `确定要删除学生 ${studentName} 吗？`;
+            deleteConfirmModal.style.display = 'flex';
+        }
+        
+        // 确认删除
+        function confirmDelete() {
+            if (deleteType === 'student') {
+                const students = classes[currentClass].students;
+                const studentName = students[currentDeleteTarget].name;
+                
+                students.splice(currentDeleteTarget, 1);
+                
+                // 更新组长状态
+                updateGroupLeaders();
+                
+                saveData();
+                
+                if (viewMode === 'individual') {
+                    renderStudents();
+                } else {
+                    renderGroups();
+                }
+                
+                showNotification(`已删除学生: ${studentName}`);
+            } else if (deleteType === 'group') {
+                const groupName = currentDeleteTarget;
+                const students = classes[currentClass].students;
+                
+                // 移除该小组的所有学生
+                classes[currentClass].students = students.filter(student => student.group !== groupName);
+                
+                // 从小组列表中移除
+                const groupIndex = classes[currentClass].groups.indexOf(groupName);
+                if (groupIndex !== -1) {
+                    classes[currentClass].groups.splice(groupIndex, 1);
+                }
+                
+                // 移除小组积分
+                if (classes[currentClass].groupScores && classes[currentClass].groupScores[groupName]) {
+                    delete classes[currentClass].groupScores[groupName];
+                }
+                
+                saveData();
+                renderGroups();
+                
+                showNotification(`已删除小组: ${groupName}`);
+            } else if (deleteType === 'class') {
+                const className = currentDeleteTarget;
+                
+                delete classes[className];
+                
+                // 如果删除的是当前班级，切换到第一个班级
+                if (currentClass === className) {
+                    const classNames = Object.keys(classes);
+                    if (classNames.length > 0) {
+                        currentClass = classNames[0];
+                        updateClassTitle();
+                        updateViewMode();
+                    } else {
+                        // 如果没有班级了，创建默认班级
+                        classes = {
+                            "默认班级": {
+                                students: [],
+                                groups: ["第一组", "第二组", "第三组", "第四组"],
+                                groupScores: {
+                                    "第一组": 0,
+                                    "第二组": 0,
+                                    "第三组": 0,
+                                    "第四组": 0
+                                }
+                            }
+                        };
+                        currentClass = "默认班级";
+                        updateClassTitle();
+                        updateViewMode();
+                    }
+                }
+                
+                saveData();
+                showNotification(`已删除班级: ${className}`);
+            }
+            
+            deleteConfirmModal.style.display = 'none';
+            currentDeleteTarget = null;
+            deleteType = '';
+        }
+        
+        // 删除小组
+        function deleteGroup(groupName) {
+            currentDeleteTarget = groupName;
+            deleteType = 'group';
+            
+            document.getElementById('deleteConfirmText').textContent = `确定要删除小组 ${groupName} 吗？该小组的所有学生也将被删除！`;
+            deleteConfirmModal.style.display = 'flex';
+        }
+        
+        // 重命名小组
+        function renameGroup(groupName) {
+            const newName = prompt(`请输入新的小组名称：`, groupName);
+            if (newName && newName.trim() && newName !== groupName) {
+                const students = classes[currentClass].students;
+                
+                // 更新学生的小组信息
+                students.forEach(student => {
+                    if (student.group === groupName) {
+                        student.group = newName;
+                    }
+                });
+                
+                // 更新小组列表
+                const groupIndex = classes[currentClass].groups.indexOf(groupName);
+                if (groupIndex !== -1) {
+                    classes[currentClass].groups[groupIndex] = newName;
+                }
+                
+                // 更新小组积分
+                if (classes[currentClass].groupScores && classes[currentClass].groupScores[groupName]) {
+                    classes[currentClass].groupScores[newName] = classes[currentClass].groupScores[groupName];
+                    delete classes[currentClass].groupScores[groupName];
+                }
+                
+                saveData();
+                renderGroups();
+                
+                showNotification(`小组已重命名为: ${newName}`);
+            }
+        }
+        
+        // 删除所有学生
+        function deleteAllStudents() {
+            if (viewMode === 'group') {
+                // 小组模式下提供两种删除选项
+                const choice = confirm("要删除整个班级的所有学生吗？点击'确定'删除全班学生，点击'取消'删除当前所选小组的学生");
+                
+                if (choice) {
+                    // 删除全班学生
+                    classes[currentClass].students = [];
+                    saveData();
+                    renderGroups();
+                    showNotification(`已删除 ${currentClass} 的所有学生`);
+                } else {
+                    // 删除当前所选小组的学生
+                    const groupSelect = document.getElementById('managerGroupSelect');
+                    const groupName = groupSelect.value;
+                    
+                    if (groupName) {
+                        classes[currentClass].students = classes[currentClass].students.filter(
+                            student => student.group !== groupName
+                        );
+                        saveData();
+                        renderGroups();
+                        showNotification(`已删除 ${groupName} 的所有学生`);
+                    }
+                }
+            } else {
+                // 个人模式下直接删除全班学生
+                const students = classes[currentClass].students;
+                if (!students || students.length === 0) {
+                    showNotification('当前班级没有学生', true);
+                    return;
+                }
+                
+                if (confirm(`确定要删除 ${currentClass} 的所有学生吗？此操作不可恢复！`)) {
+                    classes[currentClass].students = [];
+                    saveData();
+                    renderStudents();
+                    showNotification(`已删除 ${currentClass} 的所有学生`);
+                }
+            }
+        }
+        
+        // 全班加分
+        function addScoreToAll() {
+            const scoreInput = document.getElementById('scoreInput');
+            const score = parseInt(scoreInput.value) || 0;
+            const reason = document.getElementById('newReasonInput').value.trim();
+            
+            if (!reason) {
+                showNotification('请选择或输入原因', true);
+                return;
+            }
+            
+            const students = classes[currentClass].students;
+            if (!students) return;
+            
+            students.forEach(student => {
+                student.score += score;
+                
+                // 记录操作历史
+                student.history.unshift({
+                    type: score > 0 ? '加分' : '减分',
+                    amount: Math.abs(score),
+                    reason: reason,
+                    timestamp: new Date().toISOString()
+                });
+            });
+            
+            saveData();
+            
+            if (viewMode === 'individual') {
+                renderStudents();
+            } else {
+                renderGroups();
+            }
+            
+            addScoreModal.style.display = 'none';
+            
+            showNotification(`全班${score >= 0 ? '增加' : '减少'}了 ${Math.abs(score)} 分，原因: ${reason}`);
+        }
+        
+        // 全班清零
+        function resetAllScores() {
+            if (confirm('确定要将全班积分清零吗？')) {
+                const students = classes[currentClass].students;
+                if (!students) return;
+                
+                students.forEach(student => {
+                    student.score = 0;
+                    // 记录清零操作
+                    student.history.unshift({
+                        type: '清零',
+                        amount: 0,
+                        reason: '全班积分清零',
+                        timestamp: new Date().toISOString()
+                    });
+                });
+                
+                saveData();
+                
+                if (viewMode === 'individual') {
+                    renderStudents();
+                } else {
+                    renderGroups();
+                }
+                
+                showNotification('全班积分已清零');
+            }
+        }
+        
+        // 全部小组加分
+        function addScoreToAllGroups() {
+            const classData = classes[currentClass];
+            const groups = classData.groups || [];
+            
+            groups.forEach(groupName => {
+                adjustGroupScore(groupName, stepValue);
+            });
+        }
+        
+        // 全部小组清零
+        function resetAllGroups() {
+            if (confirm('确定要将全部小组积分清零吗？这不会影响学生个人积分。')) {
+                const classData = classes[currentClass];
+                if (!classData.groupScores) return;
+                
+                Object.keys(classData.groupScores).forEach(groupName => {
+                    classData.groupScores[groupName] = 0;
+                });
+                
+                saveData();
+                renderGroups();
+                
+                showNotification('全部小组积分已清零');
+            }
+        }
+        
+        // 显示排行榜
+        function showRanking() {
+            const rankingList = document.getElementById('rankingList');
+            rankingList.innerHTML = '';
+            
+            const rankingType = document.getElementById('rankingType').value;
+            
+            if (rankingType === 'individual') {
+                const students = classes[currentClass].students;
+                if (!students || students.length === 0) {
+                    rankingList.innerHTML = '<div class="empty-state">暂无学生数据</div>';
+                    rankingModal.style.display = 'flex';
+                    return;
+                }
+                
+                // 按积分排序
+                const sortedStudents = [...students].sort((a, b) => b.score - a.score);
+                
+                sortedStudents.forEach((student, index) => {
+                    const li = document.createElement('li');
+                    li.className = 'ranking-item';
+                    
+                    let medal = '';
+                    if (index === 0) medal = '🥇';
+                    else if (index === 1) medal = '🥈';
+                    else if (index === 2) medal = '🥉';
+                    
+                    li.innerHTML = `
+                        <span class="rank-medal">${medal}</span>
+                        <span class="student-name">${student.name}</span>
+                        <span style="color: #777; margin-left: 10px;">(${student.group})</span>
+                        <span style="margin-left: auto; color: #e74c3c; font-weight: bold;">${student.score}分</span>
+                    `;
+                    rankingList.appendChild(li);
+                });
+            } else {
+                // 小组排行榜
+                const classData = classes[currentClass];
+                const groups = classData.groups || [];
+                const groupScores = classData.groupScores || {};
+                
+                if (groups.length === 0) {
+                    rankingList.innerHTML = '<div class="empty-state">暂无小组数据</div>';
+                    rankingModal.style.display = 'flex';
+                    return;
+                }
+                
+                // 转换为数组并排序
+                const sortedGroups = groups.map(group => ({
+                    name: group,
+                    score: groupScores[group] || 0
+                })).sort((a, b) => b.score - a.score);
+                
+                sortedGroups.forEach((group, index) => {
+                    const li = document.createElement('li');
+                    li.className = 'ranking-item';
+                    
+                    let medal = '';
+                    if (index === 0) medal = '🥇';
+                    else if (index === 1) medal = '🥈';
+                    else if (index === 2) medal = '🥉';
+                    
+                    li.innerHTML = `
+                        <span class="rank-medal">${medal}</span>
+                        <span class="student-name">${group.name}</span>
+                        <span style="margin-left: auto; color: #e74c3c; font-weight: bold;">${group.score}分</span>
+                    `;
+                    rankingList.appendChild(li);
+                });
+            }
+            
+            rankingModal.style.display = 'flex';
+        }
+        
+        // 导入积分
+        function importScores(file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const firstSheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[firstSheetName];
+                    const jsonData = XLSX.utils.sheet_to_json(worksheet);
+                    
+                    classes[currentClass].students = [];
+                    jsonData.forEach(row => {
+                        if (row['姓名']) {
+                            classes[currentClass].students.push({
+                                name: row['姓名'],
+                                score: row['积分'] || 0,
+                                group: row['小组'] || '未分组',
+                                history: [],
+                                isLeader: false
+                            });
+                        }
+                    });
+                    
+                    // 更新组长状态
+                    updateGroupLeaders();
+                    
+                    saveData();
+                    
+                    if (viewMode === 'individual') {
+                        renderStudents();
+                    } else {
+                        renderGroups();
+                    }
+                    
+                    showNotification(`成功导入 ${classes[currentClass].students.length} 名学生数据`);
+                } catch (error) {
+                    showNotification('导入失败，请检查文件格式', true);
+                    console.error(error);
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+        
+        // 导出积分
+        function exportScores() {
+            const students = classes[currentClass].students;
+            if (!students || students.length === 0) {
+                showNotification("没有学生数据可导出", true);
+                return;
+            }
+            
+            const wsData = [
+                ['姓名', '积分', '小组']
+            ];
+            
+            students.forEach(student => {
+                wsData.push([student.name, student.score, student.group]);
+            });
+            
+            const ws = XLSX.utils.aoa_to_sheet(wsData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, '积分表');
+            
+            XLSX.writeFile(wb, `${currentClass}积分表.xlsx`);
+            showNotification('积分已导出为Excel文件');
+        }
+        
+        // 批量添加学生
+        function batchAddStudents() {
+            const classSelect = document.getElementById('managerClassSelect');
+            const groupSelect = document.getElementById('managerGroupSelect');
+            const input = document.getElementById('batchStudentsInput');
+            
+            const className = classSelect.value;
+            const groupName = groupSelect.value;
+            const names = input.value.trim().split('\n');
+            
+            if (names.length === 0 || (names.length === 1 && names[0] === '')) {
+                showNotification('请输入学生姓名', true);
+                return;
+            }
+            
+            if (!classes[className]) {
+                showNotification('请选择有效的班级', true);
+                return;
+            }
+            
+            if (!classes[className].students) {
+                classes[className].students = [];
+            }
+            
+            let count = 0;
+            names.forEach(name => {
+                const trimmedName = name.trim();
+                if (trimmedName) {
+                    // 检查是否已有组长，如果没有则第一个学生设为组长
+                    const groupStudents = classes[className].students.filter(s => s.group === groupName);
+                    const isLeader = groupStudents.length === 0;
+                    
+                    classes[className].students.unshift({
+                        name: trimmedName,
+                        score: 0,
+                        group: groupName,
+                        history: [],
+                        isLeader: isLeader
+                    });
+                    count++;
+                }
+            });
+            
+            if (count > 0) {
+                saveData();
+                
+                if (className === currentClass) {
+                    if (viewMode === 'individual') {
+                        renderStudents();
+                    } else {
+                        renderGroups();
+                    }
+                }
+                
+                studentManagerModal.style.display = 'none';
+                input.value = '';
+                showNotification(`成功添加 ${count} 名学生到 ${groupName}`);
+            } else {
+                showNotification('未添加任何学生', true);
+            }
+        }
+        
+        // 修改步值
+        function changeStepValue() {
+            const stepInput = document.getElementById('stepValueInput');
+            const newStep = parseInt(stepInput.value) || 1;
+            
+            if (newStep <= 0) {
+                showNotification('步值必须大于0', true);
+                return;
+            }
+            
+            stepValue = newStep;
+            saveData();
+            updateStepValue();
+            changeStepModal.style.display = 'none';
+            showNotification(`加减分步值已修改为: ${stepValue}`);
+        }
+        
+        // 创建新班级
+        function createNewClass() {
+            const classNameInput = document.getElementById('classNameInput');
+            const groupCountInput = document.getElementById('groupCountInput');
+            
+            const className = classNameInput.value.trim();
+            const groupCount = parseInt(groupCountInput.value) || 4;
+            
+            if (className) {
+                if (classes[className]) {
+                    showNotification('班级名称已存在', true);
+                    return;
+                }
+                
+                // 生成小组名称
+                const groups = [];
+                const groupScores = {};
+                for (let i = 1; i <= groupCount; i++) {
+                    const groupName = `第${i}组`;
+                    groups.push(groupName);
+                    groupScores[groupName] = 0;
+                }
+                
+                classes[className] = {
+                    students: [],
+                    groups: groups,
+                    groupScores: groupScores
+                };
+                
+                currentClass = className;
+                saveData();
+                updateClassTitle();
+                updateViewMode();
+                classManagerModal.style.display = 'none';
+                classNameInput.value = '';
+                
+                showNotification(`已创建新班级: ${className}`);
+            } else {
+                showNotification('请输入班级名称', true);
+            }
+        }
+        
+        // 重命名班级
+        function renameClass() {
+            const newName = prompt(`请输入新的班级名称：`, currentClass);
+            if (newName && newName.trim() && newName !== currentClass) {
+                if (classes[newName]) {
+                    showNotification('班级名称已存在', true);
+                    return;
+                }
+                
+                classes[newName] = classes[currentClass];
+                delete classes[currentClass];
+                currentClass = newName;
+                saveData();
+                updateClassTitle();
+                
+                showNotification(`班级已重命名为: ${newName}`);
+            }
+        }
+        
+        // 切换班级
+        function switchClass(className) {
+            if (classes[className]) {
+                currentClass = className;
+                saveData();
+                updateClassTitle();
+                updateViewMode();
+                classManagerModal.style.display = 'none';
+                
+                showNotification(`已切换到班级: ${className}`);
+            }
+        }
+        
+        // 删除班级
+        function deleteClass(className) {
+            currentDeleteTarget = className;
+            deleteType = 'class';
+            
+            document.getElementById('deleteConfirmText').textContent = `确定要删除班级 ${className} 吗？此操作不可恢复！`;
+            deleteConfirmModal.style.display = 'flex';
+        }
+        
+        // 显示班级列表
+        function renderClassList() {
+            const classList = document.getElementById('classList');
+            classList.innerHTML = '';
+            
+            Object.keys(classes).forEach(className => {
+                const classItem = document.createElement('div');
+                classItem.className = `class-item ${className === currentClass ? 'active' : ''}`;
+                classItem.innerHTML = `
+                    ${className}
+                    <div class="class-delete-btn" data-class="${className}">
+                        <i class="fas fa-times"></i>
+                    </div>
+                `;
+                
+                classItem.addEventListener('click', () => switchClass(className));
+                
+                const deleteBtn = classItem.querySelector('.class-delete-btn');
+                deleteBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    deleteClass(className);
+                });
+                
+                classList.appendChild(classItem);
+            });
+        }
+        
+        // 显示学生管理界面
+        function showStudentManager() {
+            const classSelect = document.getElementById('managerClassSelect');
+            const groupSelect = document.getElementById('managerGroupSelect');
+            const studentList = document.getElementById('studentList');
+            
+            // 填充班级选择框
+            classSelect.innerHTML = '';
+            Object.keys(classes).forEach(className => {
+                const option = document.createElement('option');
+                option.value = className;
+                option.textContent = className;
+                if (className === currentClass) {
+                    option.selected = true;
+                }
+                classSelect.appendChild(option);
+            });
+            
+            // 填充小组选择框
+            updateGroupSelect();
+            
+            // 显示学生列表
+            updateStudentList();
+            
+            studentManagerModal.style.display = 'flex';
+        }
+        
+        // 更新小组选择框
+        function updateGroupSelect() {
+            const classSelect = document.getElementById('managerClassSelect');
+            const groupSelect = document.getElementById('managerGroupSelect');
+            const className = classSelect.value;
+            
+            groupSelect.innerHTML = '';
+            
+            if (classes[className] && classes[className].groups) {
+                classes[className].groups.forEach(group => {
+                    const option = document.createElement('option');
+                    option.value = group;
+                    option.textContent = group;
+                    groupSelect.appendChild(option);
+                });
+            }
+        }
+        
+        // 更新学生列表
+        function updateStudentList() {
+            const classSelect = document.getElementById('managerClassSelect');
+            const groupSelect = document.getElementById('managerGroupSelect');
+            const studentList = document.getElementById('studentList');
+            
+            const className = classSelect.value;
+            const groupName = groupSelect.value;
+            
+            studentList.innerHTML = '';
+            
+            if (!classes[className] || !classes[className].students) {
+                studentList.innerHTML = '<div class="empty-state">暂无学生数据</div>';
+                return;
+            }
+            
+            const students = classes[className].students.filter(
+                student => student.group === groupName
+            );
+            
+            if (students.length === 0) {
+                studentList.innerHTML = '<div class="empty-state">该小组暂无学生</div>';
+                return;
+            }
+            
+            students.forEach((student, index) => {
+                const listItem = document.createElement('div');
+                listItem.className = 'student-list-item';
+                listItem.innerHTML = `
+                    <span>${student.name} ${student.isLeader ? '<span class="leader-badge">组长</span>' : ''}</span>
+                    <div>
+                        <span style="color: #e74c3c; font-weight: bold; margin-right: 15px;">${student.score}分</span>
+                        <span class="student-list-delete" data-name="${student.name}">
+                            <i class="fas fa-times"></i>
+                        </span>
+                    </div>
+                `;
+                
+                const deleteBtn = listItem.querySelector('.student-list-delete');
+                deleteBtn.addEventListener('click', () => {
+                    // 找到该学生在全局列表中的索引
+                    const globalIndex = classes[className].students.findIndex(s => s.name === student.name);
+                    if (globalIndex !== -1) {
+                        classes[className].students.splice(globalIndex, 1);
+                        
+                        // 更新组长状态
+                        updateGroupLeaders();
+                        
+                        saveData();
+                        updateStudentList();
+                        
+                        if (className === currentClass) {
+                            if (viewMode === 'individual') {
+                                renderStudents();
+                            } else {
+                                renderGroups();
+                            }
+                        }
+                        
+                        showNotification(`已删除学生: ${student.name}`);
+                    }
+                });
+                
+                studentList.appendChild(listItem);
+            });
+        }
+        
+        // 显示通知
+        function showNotification(message, isError = false) {
+            notification.innerHTML = `<i class="fas ${isError ? 'fa-exclamation-circle' : 'fa-check-circle'}"></i> ${message}`;
+            notification.className = `notification ${isError ? 'error' : ''} show`;
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+        
+        // 密码相关功能
+        function checkPassword() {
+            const savedPassword = localStorage.getItem('systemPassword') || '123456'; // 默认密码
+            const passwordInput = document.getElementById('passwordInput').value;
+            
+            if (passwordInput === savedPassword) {
+                passwordModal.style.display = 'none';
+                appContainer.style.display = 'block';
+                loadData();
+            } else {
+                document.getElementById('passwordError').textContent = '密码错误，请重新输入';
+            }
+        }
+        
+        function showChangePasswordForm() {
+            document.getElementById('passwordForm').style.display = 'none';
+            document.getElementById('changePasswordForm').style.display = 'block';
+        }
+        
+        function changePassword() {
+            const oldPassword = document.getElementById('oldPassword').value;
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const savedPassword = localStorage.getItem('systemPassword') || '123456';
+            
+            if (oldPassword !== savedPassword) {
+                document.getElementById('changePasswordError').textContent = '原密码错误';
+                return;
+            }
+            
+            if (newPassword.length < 6) {
+                document.getElementById('changePasswordError').textContent = '密码长度至少6位';
+                return;
+            }
+            
+            if (newPassword !== confirmPassword) {
+                document.getElementById('changePasswordError').textContent = '两次输入的新密码不一致';
+                return;
+            }
+            
+            localStorage.setItem('systemPassword', newPassword);
+            showNotification('密码修改成功');
+            document.getElementById('changePasswordForm').style.display = 'none';
+            document.getElementById('passwordForm').style.display = 'block';
+            document.getElementById('oldPassword').value = '';
+            document.getElementById('newPassword').value = '';
+            document.getElementById('confirmPassword').value = '';
+            document.getElementById('changePasswordError').textContent = '';
+        }
+        
+        // 随机点名功能
+        function startRandomPick() {
+            const students = classes[currentClass].students;
+            if (!students || students.length === 0) {
+                showNotification('班级中没有学生', true);
+                return;
+            }
+            
+            document.getElementById('startRandomBtn').style.display = 'none';
+            document.getElementById('stopRandomBtn').style.display = 'block';
+            
+            const display = document.getElementById('randomStudentDisplay');
+            display.classList.add('random-animation');
+            
+            randomPickInterval = setInterval(() => {
+                const randomIndex = Math.floor(Math.random() * students.length);
+                display.textContent = students[randomIndex].name;
+                currentSelectedStudent = students[randomIndex].name;
+            }, 100);
+        }
+        
+        function stopRandomPick() {
+            clearInterval(randomPickInterval);
+            const display = document.getElementById('randomStudentDisplay');
+            display.classList.remove('random-animation');
+            
+            document.getElementById('startRandomBtn').style.display = 'block';
+            document.getElementById('stopRandomBtn').style.display = 'none';
+            
+            const students = classes[currentClass].students;
+            const selectedStudent = students.find(s => s.name === currentSelectedStudent);
+            
+            if (!selectedStudent) return;
+            
+            // 添加到历史记录
+            const timestamp = new Date().toLocaleTimeString();
+            randomPickHistory.unshift({
+                student: selectedStudent.name,
+                group: selectedStudent.group,
+                time: timestamp
+            });
+            
+            // 更新历史显示
+            updatePickHistory();
+            
+            showNotification(`已随机选择: ${selectedStudent.name} (${selectedStudent.group})`);
+        }
+        
+        function updatePickHistory() {
+            const historyContainer = document.getElementById('pickHistory');
+            historyContainer.innerHTML = '';
+            
+            randomPickHistory.slice(0, 5).forEach(item => {
+                const historyItem = document.createElement('div');
+                historyItem.className = 'history-item';
+                historyItem.innerHTML = `
+                    <span>${item.student} (${item.group})</span> 
+                    <span style="float: right;">${item.time}</span>
+                `;
+                historyContainer.appendChild(historyItem);
+            });
+        }
+        
+        // 为随机选择的学生加减分
+        function adjustRandomPoints(change) {
+            const pointsInput = document.getElementById('pointsInput');
+            const points = parseInt(pointsInput.value) || 1;
+            
+            if (!currentSelectedStudent) {
+                showNotification('请先选择一名学生', true);
+                return;
+            }
+            
+            const students = classes[currentClass].students;
+            const student = students.find(s => s.name === currentSelectedStudent);
+            
+            if (!student) {
+                showNotification('未找到该学生', true);
+                return;
+            }
+            
+            student.score += change * points;
+            saveData();
+            
+            if (viewMode === 'individual') {
+                renderStudents();
+            } else {
+                renderGroups();
+            }
+            
+            showNotification(`已${change > 0 ? '增加' : '减少'} ${currentSelectedStudent} ${Math.abs(change * points)} 分`);
+        }
+        
+        // 打开购物车
+        function openCart(index) {
+            const students = classes[currentClass].students;
+            if (!students || index >= students.length) return;
+            
+            currentStudentCart = index;
+            cart = []; // 清空购物车
+            updateCart();
+            
+            // 显示购物车
+            cartPopup.style.display = 'block';
+        }
+        
+        // 更新购物车
+        function updateCart() {
+            cartBody.innerHTML = '';
+            
+            if (cart.length === 0) {
+                cartBody.innerHTML = '<div style="text-align:center; padding:30px; color:#aaa;">购物车是空的</div>';
+                cartTotalPoints.textContent = '0';
+                return;
+            }
+            
+            let totalPoints = 0;
+            
+            cart.forEach(item => {
+                const product = products.find(p => p.id === item.productId);
+                if (!product) return;
+                
+                totalPoints += product.points;
+                
+                const cartItem = document.createElement('div');
+                cartItem.className = 'cart-item';
+                cartItem.innerHTML = `
+                    <div class="cart-item-image">
+                        ${product.image ? `<img src="${product.image}" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">` : '<i class="fas fa-box"></i>'}
+                    </div>
+                    <div class="cart-item-info">
+                        <div class="cart-item-name">${product.name}</div>
+                        <div class="cart-item-points">${product.points}积分</div>
+                    </div>
+                    <div class="cart-item-remove" data-id="${product.id}" style="color:#ff6b6b; cursor:pointer;">
+                        <i class="fas fa-trash"></i>
+                    </div>
+                `;
+                cartBody.appendChild(cartItem);
+            });
+            
+            cartTotalPoints.textContent = totalPoints;
+            
+            // 添加删除事件
+            document.querySelectorAll('.cart-item-remove').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const productId = parseInt(e.currentTarget.dataset.id);
+                    removeFromCart(productId);
+                });
+            });
+        }
+        
+        // 从购物车移除商品
+        function removeFromCart(productId) {
+            cart = cart.filter(item => item.productId !== productId);
+            updateCart();
+        }
+        
+        // 兑换商品
+        function checkoutCart() {
+            const students = classes[currentClass].students;
+            if (!students || currentStudentCart === null) return;
+            
+            const student = students[currentStudentCart];
+            let totalPoints = 0;
+            
+            // 计算总积分
+            cart.forEach(item => {
+                const product = products.find(p => p.id === item.productId);
+                if (product) {
+                    totalPoints += product.points;
+                }
+            });
+            
+            // 检查积分是否足够
+            if (student.score < totalPoints) {
+                showNotification('积分不足，无法兑换', true);
+                return;
+            }
+            
+            // 扣除积分
+            student.score -= totalPoints;
+            
+            // 更新商品库存并记录兑换历史
+            cart.forEach(item => {
+                const product = products.find(p => p.id === item.productId);
+                if (product) {
+                    product.stock--;
+                    if (product.stock <= 0) {
+                        product.status = "soldout";
+                    }
+                    
+                    // 记录兑换历史
+                    redeemHistory.push({
+                        studentName: student.name,
+                        className: currentClass,
+                        productName: product.name,
+                        points: product.points,
+                        timestamp: new Date().toISOString()
+                    });
+                }
+            });
+            
+            // 保存数据
+            saveData();
+            
+            // 关闭购物车
+            cartPopup.style.display = 'none';
+            cart = [];
+            
+            if (viewMode === 'individual') {
+                renderStudents();
+            } else {
+                renderGroups();
+            }
+            
+            showNotification(`成功兑换商品，扣除${totalPoints}积分`);
+        }
+        
+        // 渲染商品列表
+        function renderProducts() {
+            productGrid.innerHTML = '';
+            
+            if (products.length === 0) {
+                productGrid.innerHTML = '<div class="empty-state">暂无商品</div>';
+                return;
+            }
+            
+            products.forEach(product => {
+                const productCard = document.createElement('div');
+                productCard.className = `product-card ${product.status === 'soldout' ? 'inactive-product' : ''}`;
+                
+                // 商品图片
+                let imageHtml = '<i class="fas fa-box"></i>';
+                if (product.image) {
+                    imageHtml = `<img src="${product.image}" style="width:100%;height:100%;object-fit:cover;border-radius:10px;">`;
+                }
+                
+                productCard.innerHTML = `
+                    <div class="product-image" style="${product.image ? 'background:white;' : ''}">
+                        ${imageHtml}
+                    </div>
+                    <div class="product-name">${product.name}</div>
+                    <div class="product-points">${product.points}积分</div>
+                    <div class="product-stock">库存: ${product.stock}</div>
+                    <div class="product-status ${product.status === 'available' ? 'status-available' : 'status-soldout'}">
+                        ${product.status === 'available' ? '上架中' : '已售罄'}
+                    </div>
+                    <button class="redeem-btn" data-id="${product.id}" ${product.stock <= 0 || product.status === 'soldout' ? 'disabled' : ''}>
+                        <i class="fas fa-shopping-cart"></i> 加入购物车
+                    </button>
+                    <button class="delete-product-btn" data-id="${product.id}">
+                        <i class="fas fa-trash"></i> 删除商品
+                    </button>
+                `;
+                
+                productGrid.appendChild(productCard);
+                
+                // 添加事件监听
+                const redeemBtn = productCard.querySelector('.redeem-btn');
+                if (redeemBtn) {
+                    redeemBtn.addEventListener('click', () => {
+                        cart.push({
+                            productId: product.id,
+                            timestamp: new Date().toISOString()
+                        });
+                        updateCart();
+                        showNotification(`已将${product.name}加入购物车`);
+                    });
+                }
+                
+                // 添加删除按钮事件
+                const deleteBtn = productCard.querySelector('.delete-product-btn');
+                if (deleteBtn) {
+                    deleteBtn.addEventListener('click', (e) => {
+                        const productId = parseInt(e.currentTarget.dataset.id);
+                        deleteProduct(productId);
+                    });
+                }
+            });
+        }
+        
+        // 删除商品
+        function deleteProduct(productId) {
+            if (confirm('确定要删除这个商品吗？')) {
+                products = products.filter(p => p.id !== productId);
+                saveData();
+                renderProducts();
+                showNotification('商品已删除');
+            }
+        }
+        
+        // 渲染兑换记录
+        function renderRedeemHistory() {
+            redeemHistoryBody.innerHTML = '';
+            
+            if (redeemHistory.length === 0) {
+                redeemHistoryBody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:30px;color:#aaa;">暂无兑换记录</td></tr>';
+                return;
+            }
+            
+            // 生成月份和年份选项
+            const monthFilter = document.getElementById('monthFilter');
+            const yearFilter = document.getElementById('yearFilter');
+            const classFilter = document.getElementById('classFilterRecord');
+            
+            // 清空选项（保留第一个选项）
+            while (monthFilter.options.length > 1) monthFilter.remove(1);
+            while (yearFilter.options.length > 1) yearFilter.remove(1);
+            while (classFilter.options.length > 1) classFilter.remove(1);
+            
+            // 获取所有唯一的年份和月份
+            const years = new Set();
+            const months = new Set();
+            const classesSet = new Set();
+            
+            redeemHistory.forEach(record => {
+                const date = new Date(record.timestamp);
+                years.add(date.getFullYear());
+                months.add(date.getMonth() + 1);
+                classesSet.add(record.className);
+            });
+            
+            // 添加月份选项
+            const monthNames = ["一月", "二月", "三月", "四月", "五月", "六月", 
+                              "七月", "八月", "九月", "十月", "十一月", "十二月"];
+            
+            monthNames.forEach((name, index) => {
+                if (months.has(index + 1)) {
+                    const option = document.createElement('option');
+                    option.value = index + 1;
+                    option.textContent = name;
+                    monthFilter.appendChild(option);
+                }
+            });
+            
+            // 添加年份选项
+            Array.from(years).sort().forEach(year => {
+                const option = document.createElement('option');
+                option.value = year;
+                option.textContent = year;
+                yearFilter.appendChild(option);
+            });
+            
+            // 添加班级选项
+            Array.from(classesSet).forEach(className => {
+                const option = document.createElement('option');
+                option.value = className;
+                option.textContent = className;
+                classFilter.appendChild(option);
+            });
+            
+            // 显示所有记录
+            redeemHistory.forEach(record => {
+                const date = new Date(record.timestamp);
+                const dateStr = `${date.getFullYear()}-${(date.getMonth()+1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${record.studentName}</td>
+                    <td>${record.className}</td>
+                    <td>${record.productName}</td>
+                    <td>${record.points}</td>
+                    <td>${dateStr}</td>
+                `;
+                redeemHistoryBody.appendChild(row);
+            });
+        }
+        
+        // 应用兑换记录筛选
+        function applyRecordFilter() {
+            const month = document.getElementById('monthFilter').value;
+            const year = document.getElementById('yearFilter').value;
+            const className = document.getElementById('classFilterRecord').value;
+            
+            const filteredHistory = redeemHistory.filter(record => {
+                const date = new Date(record.timestamp);
+                const recordYear = date.getFullYear();
+                const recordMonth = date.getMonth() + 1;
+                
+                if (year !== 'all' && recordYear != year) return false;
+                if (month !== 'all' && recordMonth != month) return false;
+                if (className !== 'all' && record.className !== className) return false;
+                
+                return true;
+            });
+            
+            // 更新显示
+            redeemHistoryBody.innerHTML = '';
+            
+            if (filteredHistory.length === 0) {
+                redeemHistoryBody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:30px;color:#aaa;">无匹配的兑换记录</td></tr>';
+                return;
+            }
+            
+            filteredHistory.forEach(record => {
+                const date = new Date(record.timestamp);
+                const dateStr = `${date.getFullYear()}-${(date.getMonth()+1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${record.studentName}</td>
+                    <td>${record.className}</td>
+                    <td>${record.productName}</td>
+                    <td>${record.points}</td>
+                    <td>${dateStr}</td>
+                `;
+                redeemHistoryBody.appendChild(row);
+            });
+        }
+        
+        // 导出兑换记录为Excel
+        function exportRedeemHistory() {
+            if (redeemHistory.length === 0) {
+                showNotification('没有兑换记录可导出', true);
+                return;
+            }
+            
+            const wsData = [
+                ['学生姓名', '班级', '商品名称', '兑换积分', '兑换时间']
+            ];
+            
+            redeemHistory.forEach(record => {
+                const date = new Date(record.timestamp);
+                const dateStr = `${date.getFullYear()}-${(date.getMonth()+1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+                
+                wsData.push([
+                    record.studentName,
+                    record.className,
+                    record.productName,
+                    record.points,
+                    dateStr
+                ]);
+            });
+            
+            const ws = XLSX.utils.aoa_to_sheet(wsData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, '兑换记录');
+            
+            XLSX.writeFile(wb, `${currentClass}兑换记录.xlsx`);
+            showNotification('兑换记录已导出为Excel');
+        }
+        
+        // 清空兑换历史
+        function clearHistory() {
+            if (confirm('确定要清空所有兑换记录吗？此操作不可恢复！')) {
+                redeemHistory = [];
+                saveData();
+                renderRedeemHistory();
+                showNotification('兑换记录已清空');
+            }
+        }
+        
+        // 保存商品
+        function saveProduct() {
+            const name = document.getElementById('productName').value.trim();
+            const points = parseInt(document.getElementById('productPoints').value) || 0;
+            const stock = parseInt(document.getElementById('productStock').value) || 0;
+            const status = document.getElementById('productStatus').value;
+            const image = document.getElementById('imagePreview').src || null;
+            
+            if (!name || points <= 0) {
+                showNotification('请填写完整的商品信息', true);
+                return;
+            }
+            
+            const newProduct = {
+                id: products.length > 0 ? Math.max(...products.map(p => p.id)) + 1 : 1,
+                name,
+                points,
+                stock,
+                status,
+                image
+            };
+            
+            products.push(newProduct);
+            saveData();
+            renderProducts();
+            switchTab('products');
+            showNotification('商品添加成功');
+        }
+        
+        // 渲染积分汇总
+        function renderSummary() {
+            summaryTableBody.innerHTML = '';
+            
+            const classFilter = document.getElementById('classFilter').value;
+            const searchQuery = document.getElementById('studentSearch').value.toLowerCase().trim();
+            
+            const allClasses = Object.keys(classes);
+            const studentSummary = {};
+            
+            // 收集所有学生积分
+            allClasses.forEach(className => {
+                // 应用班级筛选
+                if (classFilter !== 'all' && className !== classFilter) return;
+                
+                if (classes[className].students) {
+                    classes[className].students.forEach(student => {
+                        if (!studentSummary[student.name]) {
+                            studentSummary[student.name] = {
+                                total: 0,
+                                classes: [],
+                                details: {}
+                            };
+                        }
+                        
+                        studentSummary[student.name].total += student.score;
+                        studentSummary[student.name].classes.push(className);
+                        studentSummary[student.name].details[className] = student.score;
+                    });
+                }
+            });
+            
+            // 转换为数组并排序
+            let summaryArray = Object.keys(studentSummary).map(name => ({
+                name,
+                total: studentSummary[name].total,
+                classCount: studentSummary[name].classes.length,
+                details: studentSummary[name].details
+            })).sort((a, b) => b.total - a.total);
+            
+            // 应用学生搜索
+            if (searchQuery) {
+                summaryArray = summaryArray.filter(item => 
+                    item.name.toLowerCase().includes(searchQuery)
+                );
+            }
+            
+            // 渲染表格
+            summaryArray.forEach(item => {
+                const row = document.createElement('tr');
+                
+                // 创建明细字符串
+                let details = '';
+                Object.keys(item.details).forEach(className => {
+                    details += `${className}: ${item.details[className]}分<br>`;
+                });
+                
+                row.innerHTML = `
+                    <td>${item.name}</td>
+                    <td>${item.total}</td>
+                    <td>${item.classCount}</td>
+                    <td>${details}</td>
+                `;
+                summaryTableBody.appendChild(row);
+            });
+        }
+        
+        // 导出积分汇总为Excel
+        function exportSummary() {
+            const summaryData = [
+                ['学生姓名', '总积分', '参与班级数', '班级明细']
+            ];
+            
+            document.querySelectorAll('#summaryTableBody tr').forEach(row => {
+                const cells = row.querySelectorAll('td');
+                if (cells.length >= 4) {
+                    summaryData.push([
+                        cells[0].textContent,
+                        cells[1].textContent,
+                        cells[2].textContent,
+                        cells[3].textContent.replace(/<br>/g, '\n')
+                    ]);
+                }
+            });
+            
+            if (summaryData.length <= 1) {
+                showNotification('没有汇总数据可导出', true);
+                return;
+            }
+            
+            const ws = XLSX.utils.aoa_to_sheet(summaryData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, '积分汇总');
+            
+            XLSX.writeFile(wb, '学生积分汇总.xlsx');
+            showNotification('积分汇总已导出为Excel');
+        }
+        
+        // 切换标签页
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+                if (tab.dataset.tab === tabName) {
+                    tab.classList.add('active');
+                }
+            });
+            
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.style.display = 'none';
+            });
+            
+            document.getElementById(`${tabName}Tab`).style.display = 'block';
+            currentTab = tabName;
+            
+            if (tabName === 'redeemHistory') {
+                renderRedeemHistory();
+            }
+        }
+        
+        // 倒计时功能
+        function startTimer() {
+            const minutes = parseInt(document.getElementById('timerMinutes').value) || 5;
+            timerSeconds = minutes * 60;
+            timerRunning = true;
+            
+            updateTimerDisplay();
+            
+            timerInterval = setInterval(() => {
+                if (timerSeconds > 0) {
+                    timerSeconds--;
+                    updateTimerDisplay();
+                } else {
+                    clearInterval(timerInterval);
+                    timerRunning = false;
+                    // 播放提示音
+                    playTimerSound();
+                    showNotification('倒计时结束！');
+                }
+            }, 1000);
+        }
+        
+        function pauseTimer() {
+            clearInterval(timerInterval);
+            timerRunning = false;
+        }
+        
+        function resetTimer() {
+            clearInterval(timerInterval);
+            timerRunning = false;
+            const minutes = parseInt(document.getElementById('timerMinutes').value) || 5;
+            timerSeconds = minutes * 60;
+            updateTimerDisplay();
+        }
+        
+        function updateTimerDisplay() {
+            const minutes = Math.floor(timerSeconds / 60);
+            const seconds = timerSeconds % 60;
+            document.getElementById('timerDisplay').textContent = 
+                `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+        
+        function playTimerSound() {
+            // 创建音频上下文
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            
+            // 创建振荡器
+            const oscillator = audioContext.createOscillator();
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+            
+            // 创建增益节点（控制音量）
+            const gainNode = audioContext.createGain();
+            gainNode.gain.setValueAtTime(0.5, audioContext.currentTime);
+            
+            // 连接节点
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            // 播放声音
+            oscillator.start();
+            
+            // 1秒后停止
+            setTimeout(() => {
+                oscillator.stop();
+            }, 1000);
+        }
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            // 显示密码模态框
+            passwordModal.style.display = 'flex';
+            
+            // 密码功能事件绑定
+            document.getElementById('loginBtn').addEventListener('click', checkPassword);
+            document.getElementById('changePasswordBtn').addEventListener('click', () => {
+                classManagerModal.style.display = 'none';
+                passwordModal.style.display = 'flex';
+                showChangePasswordForm();
+            });
+            document.getElementById('savePasswordBtn').addEventListener('click', changePassword);
+            document.getElementById('cancelChangePassword').addEventListener('click', () => {
+                document.getElementById('changePasswordForm').style.display = 'none';
+                document.getElementById('passwordForm').style.display = 'block';
+                document.getElementById('changePasswordError').textContent = '';
+            });
+            
+            // 视图模式切换
+            viewModeSelect.addEventListener('change', () => {
+                viewMode = viewModeSelect.value;
+                saveData();
+                updateViewMode();
+            });
+            
+            // 积分商城事件绑定
+            document.getElementById('shopBtn').addEventListener('click', () => {
+                shopModal.style.display = 'flex';
+                switchTab('products');
+                renderProducts();
+            });
+            
+            document.getElementById('recordBtn').addEventListener('click', () => {
+                shopModal.style.display = 'flex';
+                switchTab('redeemHistory');
+                renderRedeemHistory();
+            });
+            
+            document.getElementById('summaryBtn').addEventListener('click', () => {
+                summaryModal.style.display = 'flex';
+                renderSummary();
+            });
+            
+            document.getElementById('closeShop').addEventListener('click', () => {
+                shopModal.style.display = 'none';
+            });
+            
+            document.getElementById('closeSummary').addEventListener('click', () => {
+                summaryModal.style.display = 'none';
+            });
+            
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const tabName = tab.dataset.tab;
+                    switchTab(tabName);
+                });
+            });
+            
+            document.getElementById('saveProductBtn').addEventListener('click', saveProduct);
+            document.getElementById('cancelProductBtn').addEventListener('click', () => {
+                switchTab('products');
+            });
+            
+            document.getElementById('exportRecordBtn').addEventListener('click', exportRedeemHistory);
+            document.getElementById('clearHistoryBtn').addEventListener('click', clearHistory);
+            document.getElementById('applyFilterBtn').addEventListener('click', applyRecordFilter);
+            
+            document.getElementById('exportSummaryBtn').addEventListener('click', exportSummary);
+            document.getElementById('calculateSummaryBtn').addEventListener('click', renderSummary);
+            
+            document.getElementById('checkoutBtn').addEventListener('click', checkoutCart);
+            
+            document.querySelector('.cart-close').addEventListener('click', () => {
+                cartPopup.style.display = 'none';
+            });
+            
+            document.getElementById('imageUpload').addEventListener('click', () => {
+                document.getElementById('productImage').click();
+            });
+            
+            document.getElementById('productImage').addEventListener('change', function(e) {
+                if (this.files && this.files[0]) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        document.getElementById('imagePreview').src = e.target.result;
+                        document.getElementById('imagePreview').style.display = 'block';
+                    }
+                    reader.readAsDataURL(this.files[0]);
+                }
+            });
+            
+            // 随机点名事件
+            document.getElementById('randomPickBtn').addEventListener('click', () => {
+                randomPickModal.style.display = 'flex';
+                document.getElementById('randomStudentDisplay').textContent = '点击开始按钮随机选择学生';
+                document.getElementById('startRandomBtn').style.display = 'block';
+                document.getElementById('stopRandomBtn').style.display = 'none';
+            });
+            
+            document.getElementById('startRandomBtn').addEventListener('click', startRandomPick);
+            document.getElementById('stopRandomBtn').addEventListener('click', stopRandomPick);
+            
+            // 随机点名加减分
+            document.getElementById('addPointsBtn').addEventListener('click', () => adjustRandomPoints(1));
+            document.getElementById('subtractPointsBtn').addEventListener('click', () => adjustRandomPoints(-1));
+            
+            // 班级管理事件
+            document.getElementById('newClassBtn').addEventListener('click', () => {
+                document.getElementById('classNameInput').value = '';
+                document.getElementById('groupCountInput').value = '4';
+                document.getElementById('confirmClassAction').onclick = createNewClass;
+                document.getElementById('modalTitle').innerHTML = '<i class="fas fa-plus-circle"></i> 创建新班级';
+                document.getElementById('confirmClassAction').textContent = '创建';
+                document.getElementById('groupCountContainer').style.display = 'block';
+                renderClassList();
+                classManagerModal.style.display = 'flex';
+            });
+            
+            document.getElementById('switchClassBtn').addEventListener('click', () => {
+                document.getElementById('classNameInput').value = '';
+                document.getElementById('confirmClassAction').style.display = 'none';
+                document.getElementById('modalTitle').innerHTML = '<i class="fas fa-exchange-alt"></i> 切换班级';
+                document.getElementById('groupCountContainer').style.display = 'none';
+                renderClassList();
+                classManagerModal.style.display = 'flex';
+            });
+            
+            classTitleBtn.addEventListener('click', renameClass);
+            
+            document.getElementById('confirmClassAction').addEventListener('click', function() {
+                if (this.onclick) this.onclick();
+            });
+            
+            // 学生管理事件
+            document.getElementById('studentManagerBtn').addEventListener('click', showStudentManager);
+            
+            document.getElementById('managerClassSelect').addEventListener('change', () => {
+                updateGroupSelect();
+                updateStudentList();
+            });
+            
+            document.getElementById('managerGroupSelect').addEventListener('change', updateStudentList);
+            
+            document.getElementById('confirmBatchAdd').addEventListener('click', batchAddStudents);
+            document.getElementById('cancelBatchAdd').addEventListener('click', () => {
+                studentManagerModal.style.display = 'none';
+            });
+            
+            document.getElementById('closeStudentManager').addEventListener('click', () => {
+                studentManagerModal.style.display = 'none';
+            });
+            
+            // 删除确认事件
+            document.getElementById('confirmDelete').addEventListener('click', confirmDelete);
+            document.getElementById('cancelDelete').addEventListener('click', () => {
+                deleteConfirmModal.style.display = 'none';
+            });
+            document.getElementById('closeDeleteConfirm').addEventListener('click', () => {
+                deleteConfirmModal.style.display = 'none';
+            });
+            
+            // 操作记录事件
+            document.getElementById('closeHistory').addEventListener('click', () => {
+                historyModal.style.display = 'none';
+            });
+            
+            // 原因模态框事件
+            document.getElementById('closeReason').addEventListener('click', () => {
+                reasonModal.style.display = 'none';
+            });
+            
+            document.getElementById('confirmReason').addEventListener('click', () => {
+                const reason = document.getElementById('modalNewReasonInput').value.trim();
+                if (reason) {
+                    // 保存新标签
+                    if (!reasonTags.includes(reason)) {
+                        reasonTags.push(reason);
+                        saveData();
+                    }
+                    
+                    handleScoreAdjustment(currentScoreChange, reason);
+                    reasonModal.style.display = 'none';
+                } else {
+                    showNotification('请选择或输入原因', true);
+                }
+            });
+            
+            document.getElementById('cancelReason').addEventListener('click', () => {
+                reasonModal.style.display = 'none';
+            });
+            
+            document.getElementById('modalSaveReasonBtn').addEventListener('click', () => {
+                const reason = document.getElementById('modalNewReasonInput').value.trim();
+                if (reason && !reasonTags.includes(reason)) {
+                    reasonTags.push(reason);
+                    saveData();
+                    renderReasonTags();
+                    showNotification('原因标签已保存');
+                }
+            });
+            
+            // 小组操作模态框事件
+            document.getElementById('closeGroupAction').addEventListener('click', () => {
+                groupActionModal.style.display = 'none';
+            });
+            
+            document.getElementById('confirmGroupAction').addEventListener('click', () => {
+                const score = parseInt(document.getElementById('groupActionScore').value) || 0;
+                const reason = document.getElementById('groupActionNewReasonInput').value.trim();
+                
+                if (!reason) {
+                    showNotification('请选择或输入原因', true);
+                    return;
+                }
+                
+                if (handleGroupAction(score, reason)) {
+                    groupActionModal.style.display = 'none';
+                }
+            });
+            
+            document.getElementById('cancelGroupAction').addEventListener('click', () => {
+                groupActionModal.style.display = 'none';
+            });
+            
+            document.getElementById('groupActionSaveReasonBtn').addEventListener('click', () => {
+                const reason = document.getElementById('groupActionNewReasonInput').value.trim();
+                if (reason && !reasonTags.includes(reason)) {
+                    reasonTags.push(reason);
+                    saveData();
+                    renderGroupActionReasonTags();
+                    showNotification('原因标签已保存');
+                }
+            });
+            
+            // 倒计时事件
+            document.getElementById('timerBtn').addEventListener('click', () => {
+                timerModal.style.display = 'flex';
+                resetTimer();
+            });
+            
+            document.getElementById('closeTimer').addEventListener('click', () => {
+                timerModal.style.display = 'none';
+                pauseTimer();
+            });
+            
+            document.getElementById('timerStartBtn').addEventListener('click', startTimer);
+            document.getElementById('timerPauseBtn').addEventListener('click', pauseTimer);
+            document.getElementById('timerResetBtn').addEventListener('click', resetTimer);
+            
+            // 全班加分事件
+            document.getElementById('addAllBtn').addEventListener('click', () => {
+                document.getElementById('scoreInput').value = stepValue;
+                addScoreModal.style.display = 'flex';
+                renderReasonTags();
+            });
+            
+            // 全部小组加分
+            document.getElementById('addAllGroupsBtn').addEventListener('click', addScoreToAllGroups);
+            
+            // 全部小组清零
+            document.getElementById('resetAllGroupsBtn').addEventListener('click', resetAllGroups);
+            
+            // 其他事件绑定
+            document.getElementById('resetAllBtn').addEventListener('click', resetAllScores);
+            document.getElementById('rankingBtn').addEventListener('click', showRanking);
+            document.getElementById('exportBtn').addEventListener('click', exportScores);
+            
+            // 删除所有学生按钮
+            document.getElementById('deleteAllBtn').addEventListener('click', deleteAllStudents);
+            
+            fileInput.addEventListener('change', (e) => {
+                if (e.target.files.length > 0) {
+                    importScores(e.target.files[0]);
+                }
+            });
+            
+            document.getElementById('confirmAddScore').addEventListener('click', addScoreToAll);
+            document.getElementById('cancelAddScore').addEventListener('click', () => {
+                addScoreModal.style.display = 'none';
+            });
+            
+            document.getElementById('changeStepBtn').addEventListener('click', () => {
+                document.getElementById('stepValueInput').value = stepValue;
+                changeStepModal.style.display = 'flex';
+            });
+            
+            document.getElementById('confirmChangeStep').addEventListener('click', changeStepValue);
+            document.getElementById('cancelChangeStep').addEventListener('click', () => {
+                changeStepModal.style.display = 'none';
+            });
+            
+            document.getElementById('confirmEditStudent').addEventListener('click', saveStudentEdit);
+            document.getElementById('cancelEditStudent').addEventListener('click', () => {
+                editStudentModal.style.display = 'none';
+            });
+            
+            document.getElementById('closeRanking').addEventListener('click', () => {
+                rankingModal.style.display = 'none';
+            });
+            
+            document.getElementById('closeAddScore').addEventListener('click', () => {
+                addScoreModal.style.display = 'none';
+            });
+            
+            document.getElementById('closeChangeStep').addEventListener('click', () => {
+                changeStepModal.style.display = 'none';
+            });
+            
+            document.getElementById('closeEditStudent').addEventListener('click', () => {
+                editStudentModal.style.display = 'none';
+            });
+            
+            document.getElementById('closeClassManager').addEventListener('click', () => {
+                classManagerModal.style.display = 'none';
+            });
+            
+            document.getElementById('cancelClassAction').addEventListener('click', () => {
+                classManagerModal.style.display = 'none';
+            });
+            
+            document.getElementById('closeRandomPick').addEventListener('click', () => {
+                clearInterval(randomPickInterval);
+                randomPickModal.style.display = 'none';
+            });
+            
+            // 支持按Enter键操作
+            document.getElementById('passwordInput').addEventListener('keyup', (e) => {
+                if (e.key === 'Enter') {
+                    document.getElementById('loginBtn').click();
+                }
+            });
+            
+            // 学生搜索功能
+            document.getElementById('studentSearch').addEventListener('keyup', (e) => {
+                if (e.key === 'Enter') {
+                    renderSummary();
+                }
+            });
+            
+            // 初始化数据
+            loadData();
+        });
+    </script>
+</body>
+</html>
