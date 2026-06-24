@@ -512,6 +512,55 @@
             display: none;
         }
 
+        .data-manage-section {
+            background: #f8f9fb;
+            border-radius: 14px;
+            padding: 18px 20px;
+            margin-bottom: 18px;
+            border: 1px solid #e8eef5;
+        }
+
+        .data-section-title {
+            font-size: 1.15rem;
+            color: #2c3e50;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .data-desc {
+            color: #5d6d7e;
+            font-size: 0.98rem;
+            line-height: 1.6;
+            margin-bottom: 12px;
+        }
+
+        .data-btn-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .data-btn-group .confirm-btn,
+        .data-btn-group .cancel-btn {
+            padding: 10px 22px;
+            font-size: 1rem;
+            min-width: auto;
+        }
+
+        .data-hint {
+            color: #95a5a6;
+            font-size: 0.88rem;
+            margin-top: 10px;
+            line-height: 1.5;
+        }
+
+        .data-hint:empty {
+            margin-top: 0;
+        }
+
         .empty-state {
             text-align: center;
             padding: 50px;
@@ -1698,6 +1747,9 @@
             <button class="menu-btn summary individual-only" id="summaryBtn">
                 <i class="fas fa-calculator"></i> 积分汇总
             </button>
+            <button class="menu-btn" id="dataManageBtn" style="background: linear-gradient(to right, #11998e, #38ef7d);">
+                <i class="fas fa-database"></i> 数据管理
+            </button>
             <!-- 小组模式专用按钮 -->
             <button class="menu-btn group-only" id="addAllGroupsBtn" style="display: none;">
                 <i class="fas fa-users"></i> 全部小组加分
@@ -2138,6 +2190,44 @@
             <button class="checkout-btn" id="checkoutBtn">兑换</button>
         </div>
     </div>
+
+    <!-- 数据管理模态框 -->
+    <div class="modal" id="dataManageModal">
+        <div class="modal-content">
+            <span class="close-btn" id="closeDataManage">&times;</span>
+            <h2 class="modal-title">
+                <i class="fas fa-database"></i> 数据管理 💾
+            </h2>
+            <div class="data-manage-section">
+                <h3 class="data-section-title"><i class="fas fa-info-circle"></i> 说明</h3>
+                <p class="data-desc">将积分、商品、兑换记录、密码等所有配置保存到 JSON 文件中，避免切换浏览器或清除数据后丢失。推荐使用「绑定数据文件」实现自动保存。</p>
+            </div>
+
+            <div class="data-manage-section">
+                <h3 class="data-section-title"><i class="fas fa-link"></i> 自动保存（推荐）</h3>
+                <p class="data-desc" id="autoSaveStatus">状态：未绑定数据文件</p>
+                <div class="data-btn-group">
+                    <button class="confirm-btn" id="bindFileBtn">绑定数据文件</button>
+                    <button class="cancel-btn" id="unbindFileBtn" style="display:none;">解除绑定</button>
+                    <button class="cancel-btn" id="loadFromBoundBtn" style="display:none;">从文件载入</button>
+                    <button class="cancel-btn" id="saveToBoundBtn" style="display:none;">立即保存到文件</button>
+                </div>
+                <p class="data-hint" id="autoSaveHint"></p>
+            </div>
+
+            <div class="data-manage-section">
+                <h3 class="data-section-title"><i class="fas fa-file-export"></i> 手动备份 / 恢复</h3>
+                <div class="data-btn-group">
+                    <button class="confirm-btn" id="exportJsonBtn">导出为 JSON 文件</button>
+                    <label class="file-input-label" for="jsonFileInput" style="background: linear-gradient(to right, #f7971e, #ffd200);">
+                        <i class="fas fa-file-import"></i> 从 JSON 文件恢复
+                    </label>
+                    <input type="file" id="jsonFileInput" accept=".json" style="display:none;">
+                </div>
+                <p class="data-hint">导出后会下载一个包含全部数据的 JSON 文件，可在其他浏览器通过「从 JSON 文件恢复」导入。</p>
+            </div>
+        </div>
+    </div>
     
     <!-- 通知 -->
     <div class="notification" id="notification">
@@ -2202,6 +2292,7 @@
         const reasonModal = document.getElementById('reasonModal');
         const timerModal = document.getElementById('timerModal');
         const groupActionModal = document.getElementById('groupActionModal');
+        const dataManageModal = document.getElementById('dataManageModal');
         
         // 从localStorage加载数据
         function loadData() {
@@ -2338,8 +2429,319 @@
             localStorage.setItem('stepValue', stepValue);
             localStorage.setItem('viewMode', viewMode);
             localStorage.setItem('reasonTags', JSON.stringify(reasonTags));
+            // 同步保存到已绑定的 JSON 文件（防抖）
+            scheduleAutoSaveToFile();
         }
-        
+
+        // ============ JSON 文件持久化 ============
+        let boundFileHandle = null;      // 绑定的文件句柄（File System Access API）
+        let autoSaveTimer = null;        // 防抖定时器
+        let isAutoSaving = false;        // 是否正在写入文件
+        const FILE_HANDLE_DB = 'ClassPointsDB';
+        const FILE_HANDLE_STORE = 'fileHandles';
+        const FILE_HANDLE_KEY = 'boundDataFile';
+
+        // 收集所有需要持久化的数据
+        function getAllDataObject() {
+            return {
+                version: 1,
+                exportTime: new Date().toISOString(),
+                classes: classes,
+                products: products,
+                redeemHistory: redeemHistory,
+                currentClass: currentClass,
+                stepValue: stepValue,
+                viewMode: viewMode,
+                reasonTags: reasonTags,
+                systemPassword: localStorage.getItem('systemPassword') || '123456'
+            };
+        }
+
+        // 将数据对象应用到内存变量
+        function applyDataObject(data) {
+            if (!data || typeof data !== 'object') throw new Error('数据格式不正确');
+            if (data.classes) classes = data.classes;
+            if (data.products) products = data.products;
+            if (data.redeemHistory) redeemHistory = data.redeemHistory;
+            if (data.currentClass) currentClass = data.currentClass;
+            if (typeof data.stepValue === 'number') stepValue = data.stepValue;
+            if (data.viewMode) viewMode = data.viewMode;
+            if (data.reasonTags) reasonTags = data.reasonTags;
+            if (data.systemPassword) localStorage.setItem('systemPassword', data.systemPassword);
+            // 同步到 localStorage 缓存
+            localStorage.setItem('classPointsSystem', JSON.stringify(classes));
+            localStorage.setItem('classProducts', JSON.stringify(products));
+            localStorage.setItem('redeemHistory', JSON.stringify(redeemHistory));
+            localStorage.setItem('currentClass', currentClass);
+            localStorage.setItem('stepValue', stepValue);
+            localStorage.setItem('viewMode', viewMode);
+            localStorage.setItem('reasonTags', JSON.stringify(reasonTags));
+        }
+
+        // 导出全部数据为 JSON 文件（下载）
+        function exportAllDataToJSON() {
+            try {
+                const data = getAllDataObject();
+                const jsonStr = JSON.stringify(data, null, 2);
+                const blob = new Blob([jsonStr], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                const dateStr = new Date().toISOString().slice(0, 10);
+                a.download = `课堂积分数据备份_${dateStr}.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                showNotification('数据已导出为 JSON 文件');
+            } catch (err) {
+                console.error(err);
+                showNotification('导出失败：' + err.message, true);
+            }
+        }
+
+        // 从 JSON 文件恢复全部数据
+        function importAllDataFromJSON(file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    // 取消可能挂起的自动保存，避免用旧缓存覆盖刚恢复的数据
+                    if (autoSaveTimer) { clearTimeout(autoSaveTimer); autoSaveTimer = null; }
+                    applyDataObject(data);
+                    updateClassTitle();
+                    updateStepValue();
+                    if (viewModeSelect) viewModeSelect.value = viewMode;
+                    updateViewMode();
+                    showNotification('数据已从 JSON 文件恢复');
+                } catch (err) {
+                    console.error(err);
+                    showNotification('恢复失败：' + err.message, true);
+                }
+            };
+            reader.onerror = function() {
+                showNotification('读取文件失败', true);
+            };
+            reader.readAsText(file);
+        }
+
+        // ============ IndexedDB 文件句柄存储 ============
+        function openHandleDB() {
+            return new Promise((resolve, reject) => {
+                const req = indexedDB.open(FILE_HANDLE_DB, 1);
+                req.onupgradeneeded = function() {
+                    req.result.createObjectStore(FILE_HANDLE_STORE);
+                };
+                req.onsuccess = () => resolve(req.result);
+                req.onerror = () => reject(req.error);
+            });
+        }
+
+        async function saveHandleToDB(handle) {
+            const db = await openHandleDB();
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction(FILE_HANDLE_STORE, 'readwrite');
+                tx.objectStore(FILE_HANDLE_STORE).put(handle, FILE_HANDLE_KEY);
+                tx.oncomplete = () => resolve();
+                tx.onerror = () => reject(tx.error);
+            });
+        }
+
+        async function getHandleFromDB() {
+            const db = await openHandleDB();
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction(FILE_HANDLE_STORE, 'readonly');
+                const req = tx.objectStore(FILE_HANDLE_STORE).get(FILE_HANDLE_KEY);
+                req.onsuccess = () => resolve(req.result || null);
+                req.onerror = () => reject(req.error);
+            });
+        }
+
+        async function removeHandleFromDB() {
+            const db = await openHandleDB();
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction(FILE_HANDLE_STORE, 'readwrite');
+                tx.objectStore(FILE_HANDLE_STORE).delete(FILE_HANDLE_KEY);
+                tx.oncomplete = () => resolve();
+                tx.onerror = () => reject(tx.error);
+            });
+        }
+
+        // 校验文件句柄权限
+        async function verifyPermission(handle, readWrite) {
+            if (!handle) return false;
+            const opts = { mode: readWrite ? 'readwrite' : 'read' };
+            if ((await handle.queryPermission(opts)) === 'granted') return true;
+            if ((await handle.requestPermission(opts)) === 'granted') return true;
+            return false;
+        }
+
+        // ============ 绑定 / 解绑数据文件 ============
+        async function bindDataFile() {
+            if (!window.showSaveFilePicker) {
+                showNotification('当前浏览器不支持自动保存，请使用手动导出/恢复', true);
+                return;
+            }
+            try {
+                const handle = await window.showSaveFilePicker({
+                    suggestedName: '课堂积分数据.json',
+                    types: [{
+                        description: 'JSON 数据文件',
+                        accept: { 'application/json': ['.json'] }
+                    }]
+                });
+                const ok = await verifyPermission(handle, true);
+                if (!ok) {
+                    showNotification('未获得文件写入权限', true);
+                    return;
+                }
+                boundFileHandle = handle;
+                await saveHandleToDB(handle);
+                // 绑定后立即写入一次当前数据
+                await saveToBoundFile(true);
+                updateDataManageUI();
+                showNotification('已绑定数据文件，将自动保存');
+            } catch (err) {
+                if (err.name !== 'AbortError') {
+                    console.error(err);
+                    showNotification('绑定失败：' + err.message, true);
+                }
+            }
+        }
+
+        async function unbindDataFile() {
+            boundFileHandle = null;
+            await removeHandleFromDB();
+            updateDataManageUI();
+            showNotification('已解除数据文件绑定');
+        }
+
+        // 保存到已绑定的文件
+        async function saveToBoundFile(silent) {
+            if (!boundFileHandle) {
+                if (!silent) showNotification('未绑定数据文件', true);
+                return false;
+            }
+            try {
+                const ok = await verifyPermission(boundFileHandle, true);
+                if (!ok) {
+                    if (!silent) showNotification('未获得文件写入权限', true);
+                    return false;
+                }
+                const data = getAllDataObject();
+                const jsonStr = JSON.stringify(data, null, 2);
+                const writable = await boundFileHandle.createWritable();
+                await writable.write(jsonStr);
+                await writable.close();
+                if (!silent) showNotification('数据已保存到文件');
+                return true;
+            } catch (err) {
+                console.error(err);
+                if (!silent) showNotification('保存到文件失败：' + err.message, true);
+                return false;
+            }
+        }
+
+        // 从已绑定的文件载入
+        async function loadFromBoundFile() {
+            if (!boundFileHandle) {
+                showNotification('未绑定数据文件', true);
+                return false;
+            }
+            try {
+                const ok = await verifyPermission(boundFileHandle, false);
+                if (!ok) {
+                    showNotification('未获得文件读取权限', true);
+                    return false;
+                }
+                // 取消可能挂起的自动保存，避免用旧缓存覆盖刚载入的文件数据
+                if (autoSaveTimer) { clearTimeout(autoSaveTimer); autoSaveTimer = null; }
+                const file = await boundFileHandle.getFile();
+                const text = await file.text();
+                const data = JSON.parse(text);
+                applyDataObject(data);
+                updateClassTitle();
+                updateStepValue();
+                if (viewModeSelect) viewModeSelect.value = viewMode;
+                updateViewMode();
+                showNotification('已从文件载入数据');
+                return true;
+            } catch (err) {
+                console.error(err);
+                showNotification('从文件载入失败：' + err.message, true);
+                return false;
+            }
+        }
+
+        // 防抖自动保存
+        function scheduleAutoSaveToFile() {
+            if (!boundFileHandle) return;
+            if (autoSaveTimer) clearTimeout(autoSaveTimer);
+            autoSaveTimer = setTimeout(async () => {
+                if (isAutoSaving) return;
+                isAutoSaving = true;
+                try {
+                    await saveToBoundFile(true);
+                } finally {
+                    isAutoSaving = false;
+                }
+            }, 800);
+        }
+
+        // 启动时尝试恢复文件绑定，并从文件载入数据
+        async function initDataFileBinding() {
+            try {
+                const handle = await getHandleFromDB();
+                if (!handle) return;
+                // 静默查询权限，若已授权则自动载入
+                const perm = await handle.queryPermission({ mode: 'read' });
+                if (perm === 'granted') {
+                    boundFileHandle = handle;
+                    await loadFromBoundFile();
+                    updateDataManageUI();
+                } else {
+                    // 权限未授予，保留句柄等待用户在数据管理中确认
+                    boundFileHandle = handle;
+                    updateDataManageUI();
+                }
+            } catch (err) {
+                console.error('初始化文件绑定失败', err);
+            }
+        }
+
+        // 更新数据管理弹窗 UI 状态
+        function updateDataManageUI() {
+            const statusEl = document.getElementById('autoSaveStatus');
+            const hintEl = document.getElementById('autoSaveHint');
+            const unbindBtn = document.getElementById('unbindFileBtn');
+            const loadBtn = document.getElementById('loadFromBoundBtn');
+            const saveBtn = document.getElementById('saveToBoundBtn');
+            const bindBtn = document.getElementById('bindFileBtn');
+            if (!statusEl) return;
+            if (boundFileHandle) {
+                const name = boundFileHandle.name || '已绑定文件';
+                statusEl.textContent = '状态：已绑定「' + name + '」，数据变更将自动保存';
+                statusEl.style.color = '#27ae60';
+                hintEl.textContent = '提示：刷新页面后浏览器可能需要重新授权文件访问权限，可在本界面点击「从文件载入」重新激活。';
+                if (unbindBtn) unbindBtn.style.display = '';
+                if (loadBtn) loadBtn.style.display = '';
+                if (saveBtn) saveBtn.style.display = '';
+                if (bindBtn) bindBtn.textContent = '重新绑定数据文件';
+            } else {
+                statusEl.textContent = '状态：未绑定数据文件';
+                statusEl.style.color = '#5d6d7e';
+                hintEl.textContent = window.showSaveFilePicker
+                    ? '点击「绑定数据文件」选择一个 JSON 文件用于自动保存（推荐 Chrome / Edge 浏览器）。'
+                    : '当前浏览器不支持自动保存，请使用下方手动导出/恢复功能。';
+                if (unbindBtn) unbindBtn.style.display = 'none';
+                if (loadBtn) loadBtn.style.display = 'none';
+                if (saveBtn) saveBtn.style.display = 'none';
+                if (bindBtn) bindBtn.textContent = '绑定数据文件';
+            }
+        }
+
+        // ============ END JSON 文件持久化 ============
+
         // 更新班级标题
         function updateClassTitle() {
             classTitleBtn.innerHTML = `
@@ -3837,6 +4239,8 @@
                 passwordModal.style.display = 'none';
                 appContainer.style.display = 'block';
                 loadData();
+                // 登录后从已绑定的 JSON 文件载入数据（文件优先于缓存）
+                initDataFileBinding();
             } else {
                 document.getElementById('passwordError').textContent = '密码错误，请重新输入';
             }
@@ -3869,6 +4273,7 @@
             }
             
             localStorage.setItem('systemPassword', newPassword);
+            scheduleAutoSaveToFile();
             showNotification('密码修改成功');
             document.getElementById('changePasswordForm').style.display = 'none';
             document.getElementById('passwordForm').style.display = 'block';
@@ -4886,9 +5291,31 @@
                     renderSummary();
                 }
             });
-            
+
+            // 数据管理事件绑定
+            document.getElementById('dataManageBtn').addEventListener('click', () => {
+                updateDataManageUI();
+                dataManageModal.style.display = 'flex';
+            });
+            document.getElementById('closeDataManage').addEventListener('click', () => {
+                dataManageModal.style.display = 'none';
+            });
+            document.getElementById('bindFileBtn').addEventListener('click', bindDataFile);
+            document.getElementById('unbindFileBtn').addEventListener('click', unbindDataFile);
+            document.getElementById('loadFromBoundBtn').addEventListener('click', loadFromBoundFile);
+            document.getElementById('saveToBoundBtn').addEventListener('click', () => saveToBoundFile(false));
+            document.getElementById('exportJsonBtn').addEventListener('click', exportAllDataToJSON);
+            document.getElementById('jsonFileInput').addEventListener('change', (e) => {
+                if (e.target.files.length > 0) {
+                    importAllDataFromJSON(e.target.files[0]);
+                    e.target.value = '';
+                }
+            });
+
             // 初始化数据
             loadData();
+            // 初始化 JSON 文件绑定（尝试从已绑定的文件载入数据）
+            initDataFileBinding();
         });
     </script>
 </body>
