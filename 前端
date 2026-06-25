@@ -2211,6 +2211,7 @@
                     <button class="cancel-btn" id="unbindFileBtn" style="display:none;">解除绑定</button>
                     <button class="cancel-btn" id="loadFromBoundBtn" style="display:none;">从文件载入</button>
                     <button class="cancel-btn" id="saveToBoundBtn" style="display:none;">立即保存到文件</button>
+                    <button class="cancel-btn" id="dismissGuideBtn" style="display:none; background:#bdc3c7; font-size:0.9rem; padding:8px 16px;">不再提示</button>
                 </div>
                 <p class="data-hint" id="autoSaveHint"></p>
             </div>
@@ -2692,7 +2693,7 @@
         async function initDataFileBinding() {
             try {
                 const handle = await getHandleFromDB();
-                if (!handle) return;
+                if (!handle) return false;
                 // 静默查询权限，若已授权则自动载入
                 const perm = await handle.queryPermission({ mode: 'read' });
                 if (perm === 'granted') {
@@ -2707,6 +2708,19 @@
             } catch (err) {
                 console.error('初始化文件绑定失败', err);
             }
+            return !!boundFileHandle;
+        }
+
+        // 引导用户绑定数据文件（首次使用时）
+        function showDataFileGuide() {
+            updateDataManageUI();
+            dataManageModal.style.display = 'flex';
+            const hintEl = document.getElementById('autoSaveHint');
+            if (hintEl) {
+                hintEl.innerHTML = '<strong style="color:#e67e22;">⚡ 首次使用建议：点击上方「绑定数据文件」授权一次，即可默认同时保存到本地存储与 JSON 文件，避免清除数据或切换浏览器后丢失。</strong>';
+            }
+            const dismissBtn = document.getElementById('dismissGuideBtn');
+            if (dismissBtn) dismissBtn.style.display = '';
         }
 
         // 更新数据管理弹窗 UI 状态
@@ -2717,22 +2731,26 @@
             const loadBtn = document.getElementById('loadFromBoundBtn');
             const saveBtn = document.getElementById('saveToBoundBtn');
             const bindBtn = document.getElementById('bindFileBtn');
+            const dismissBtn = document.getElementById('dismissGuideBtn');
             if (!statusEl) return;
             if (boundFileHandle) {
                 const name = boundFileHandle.name || '已绑定文件';
-                statusEl.textContent = '状态：已绑定「' + name + '」，数据变更将自动保存';
+                statusEl.textContent = '状态：已绑定「' + name + '」，本地存储与 JSON 文件已默认双写';
                 statusEl.style.color = '#27ae60';
                 hintEl.textContent = '提示：刷新页面后浏览器可能需要重新授权文件访问权限，可在本界面点击「从文件载入」重新激活。';
                 if (unbindBtn) unbindBtn.style.display = '';
                 if (loadBtn) loadBtn.style.display = '';
                 if (saveBtn) saveBtn.style.display = '';
                 if (bindBtn) bindBtn.textContent = '重新绑定数据文件';
+                if (dismissBtn) dismissBtn.style.display = 'none';
             } else {
-                statusEl.textContent = '状态：未绑定数据文件';
+                statusEl.textContent = '状态：未绑定数据文件（当前仅本地存储）';
                 statusEl.style.color = '#5d6d7e';
-                hintEl.textContent = window.showSaveFilePicker
-                    ? '点击「绑定数据文件」选择一个 JSON 文件用于自动保存（推荐 Chrome / Edge 浏览器）。'
-                    : '当前浏览器不支持自动保存，请使用下方手动导出/恢复功能。';
+                if (window.showSaveFilePicker) {
+                    hintEl.innerHTML = '点击「绑定数据文件」选择一个 JSON 文件，授权后即可<strong>默认同时保存到本地存储与 JSON 文件</strong>（推荐 Chrome / Edge 浏览器）。';
+                } else {
+                    hintEl.textContent = '当前浏览器不支持自动保存，请使用下方手动导出/恢复功能。';
+                }
                 if (unbindBtn) unbindBtn.style.display = 'none';
                 if (loadBtn) loadBtn.style.display = 'none';
                 if (saveBtn) saveBtn.style.display = 'none';
@@ -4231,16 +4249,20 @@
         }
         
         // 密码相关功能
-        function checkPassword() {
+        async function checkPassword() {
             const savedPassword = localStorage.getItem('systemPassword') || '123456'; // 默认密码
             const passwordInput = document.getElementById('passwordInput').value;
-            
+
             if (passwordInput === savedPassword) {
                 passwordModal.style.display = 'none';
                 appContainer.style.display = 'block';
                 loadData();
                 // 登录后从已绑定的 JSON 文件载入数据（文件优先于缓存）
-                initDataFileBinding();
+                const bound = await initDataFileBinding();
+                // 未绑定数据文件且未关闭引导时，自动弹出引导，授权一次后默认双写
+                if (!bound && !localStorage.getItem('dataFileGuideDismissed') && window.showSaveFilePicker) {
+                    showDataFileGuide();
+                }
             } else {
                 document.getElementById('passwordError').textContent = '密码错误，请重新输入';
             }
@@ -5312,10 +5334,15 @@
                 }
             });
 
-            // 初始化数据
+            // 「不再提示」按钮：关闭自动引导，可随时通过数据管理按钮重新绑定
+            document.getElementById('dismissGuideBtn').addEventListener('click', () => {
+                localStorage.setItem('dataFileGuideDismissed', '1');
+                dataManageModal.style.display = 'none';
+                showNotification('已关闭自动提示，可随时点击「数据管理」绑定文件');
+            });
+
+            // 初始化数据（文件绑定在登录后由 checkPassword 触发，实现默认双写）
             loadData();
-            // 初始化 JSON 文件绑定（尝试从已绑定的文件载入数据）
-            initDataFileBinding();
         });
     </script>
 </body>
