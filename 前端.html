@@ -3,336 +3,336 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>多功能课堂积分管理系统</title>
+    <title>ClassPoints</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
+        /* ===== WinUI 3 设计令牌 ===== */
+        :root {
+            --cp-bg: #f3f3f3;
+            --cp-surface: #ffffff;
+            --cp-surface-2: #fafafa;
+            --cp-border: #e5e5e5;
+            --cp-border-strong: #d1d1d1;
+            --cp-text: #1a1a1a;
+            --cp-text-2: #666666;
+            --cp-text-3: #999999;
+            --cp-primary: #005fb8;
+            --cp-primary-hover: #004580;
+            --cp-primary-active: #003a6b;
+            --cp-danger: #c42b1c;
+            --cp-danger-bg: #fdf3f2;
+            --cp-radius: 8px;
+            --cp-radius-sm: 4px;
+            --cp-radius-btn: 6px;
+        }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            font-family: 'Segoe UI Variable', 'Segoe UI', 'Microsoft YaHei UI', sans-serif;
         }
 
         body {
-            background: linear-gradient(135deg, #1a2980, #26d0ce);
+            background: var(--cp-bg);
             min-height: 100vh;
             display: flex;
             justify-content: center;
-            align-items: center;
-            padding: 20px;
-            color: #333;
+            align-items: flex-start;
+            padding: 16px;
+            color: var(--cp-text);
         }
 
         .container {
             width: 100%;
             max-width: 1500px;
-            background-color: rgba(255, 255, 255, 0.95);
-            border-radius: 20px;
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
+            background-color: var(--cp-surface);
+            border-radius: var(--cp-radius);
+            border: 1px solid var(--cp-border);
             overflow: hidden;
         }
 
         header {
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-            padding: 25px 40px;
+            background: var(--cp-surface);
+            padding: 20px 32px;
             display: flex;
             align-items: center;
             justify-content: space-between;
             flex-wrap: wrap;
-            gap: 20px;
+            gap: 16px;
             position: relative;
+            border-bottom: 1px solid var(--cp-border);
         }
 
         .class-controls {
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 12px;
             flex-wrap: wrap;
         }
 
         .class-title {
-            font-size: 2.3rem;
-            font-weight: 800;
-            color: white;
-            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--cp-text);
             cursor: pointer;
-            transition: all 0.3s ease;
-            padding: 8px 20px;
-            border-radius: 50px;
-            background: rgba(255, 255, 255, 0.15);
+            transition: color 0.2s ease;
+            padding: 6px 12px;
+            border-radius: var(--cp-radius-btn);
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 8px;
         }
 
         .class-title:hover {
-            background: rgba(255, 255, 255, 0.25);
-            transform: translateY(-3px);
+            background: var(--cp-surface-2);
+            color: var(--cp-primary);
         }
 
         .emoji {
-            font-size: 2rem;
-            display: inline-block;
-            animation: bounce 2s infinite;
-        }
-
-        @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
+            display: none;
         }
 
         .class-manager {
             display: flex;
-            gap: 15px;
+            gap: 8px;
             flex-wrap: wrap;
         }
 
         .class-btn {
-            background: rgba(255, 255, 255, 0.9);
-            border: none;
-            padding: 12px 25px;
-            border-radius: 50px;
-            font-size: 1.1rem;
-            font-weight: 600;
+            background: var(--cp-surface-2);
+            border: 1px solid var(--cp-border);
+            padding: 8px 16px;
+            border-radius: var(--cp-radius-btn);
+            font-size: 0.95rem;
+            font-weight: 400;
+            color: var(--cp-text);
             cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+            transition: background 0.15s ease, border-color 0.15s ease;
             display: flex;
             align-items: center;
             gap: 8px;
         }
 
         .class-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+            background: #ebebeb;
+            border-color: var(--cp-border-strong);
         }
 
         .class-btn i {
-            font-size: 1.2rem;
+            font-size: 1rem;
+            color: var(--cp-text-2);
         }
 
         .menu-bar {
-            background-color: white;
-            padding: 18px 30px;
+            background-color: var(--cp-surface);
+            padding: 12px 24px;
             display: flex;
-            justify-content: center;
+            justify-content: flex-start;
             flex-wrap: wrap;
-            gap: 15px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            gap: 8px;
+            border-bottom: 1px solid var(--cp-border);
         }
 
         .menu-btn {
-            background: linear-gradient(to right, #4facfe, #00f2fe);
-            color: white;
-            border: none;
-            padding: 12px 25px;
-            border-radius: 50px;
-            font-size: 1.1rem;
-            font-weight: bold;
+            background: var(--cp-surface-2);
+            color: var(--cp-text);
+            border: 1px solid var(--cp-border);
+            padding: 8px 14px;
+            border-radius: var(--cp-radius-btn);
+            font-size: 0.92rem;
+            font-weight: 400;
             cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            min-width: 130px;
+            transition: background 0.15s ease, border-color 0.15s ease;
             display: flex;
             align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-
-        .menu-btn.random {
-            background: linear-gradient(to right, #9c27b0, #e91e63);
-        }
-
-        .menu-btn.delete {
-            background: linear-gradient(to right, #ff6b6b, #ff8e8e);
-        }
-
-        .menu-btn.step {
-            background: linear-gradient(to right, #ff9800, #ffc107);
-        }
-        
-        .menu-btn.shop {
-            background: linear-gradient(to right, #e91e63, #f44336);
-        }
-        
-        .menu-btn.record {
-            background: linear-gradient(to right, #673ab7, #9c27b0);
-        }
-        
-        .menu-btn.summary {
-            background: linear-gradient(to right, #4caf50, #8bc34a);
+            gap: 6px;
         }
 
         .menu-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25);
+            background: #ebebeb;
+            border-color: var(--cp-border-strong);
         }
 
         .menu-btn:active {
-            transform: translateY(1px);
+            background: #d1d1d1;
+        }
+
+        .menu-btn i {
+            color: var(--cp-text-2);
+            font-size: 0.95rem;
+        }
+
+        /* 主操作按钮：全班加分 */
+        .menu-btn.primary {
+            background: var(--cp-primary);
+            color: #fff;
+            border-color: var(--cp-primary);
+        }
+        .menu-btn.primary:hover {
+            background: var(--cp-primary-hover);
+            border-color: var(--cp-primary-hover);
+        }
+        .menu-btn.primary:active {
+            background: var(--cp-primary-active);
+        }
+        .menu-btn.primary i {
+            color: #fff;
+        }
+
+        /* 危险按钮：删除相关 */
+        .menu-btn.delete {
+            color: var(--cp-danger);
+        }
+        .menu-btn.delete:hover {
+            background: var(--cp-danger-bg);
+            border-color: var(--cp-danger);
         }
 
         .student-grid {
             display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 25px;
-            padding: 40px;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 8px;
+            padding: 16px;
             min-height: 400px;
         }
 
         .student-card {
-            background-color: white;
-            border-radius: 15px;
-            padding: 20px;
-            text-align: center;
-            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
-            transition: all 0.3s ease;
+            background-color: var(--cp-surface);
+            border: 1px solid var(--cp-border);
+            border-radius: var(--cp-radius);
+            padding: 10px 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: border-color 0.15s ease, background 0.15s ease;
             position: relative;
             overflow: hidden;
-            animation: fadeIn 0.5s ease;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
         }
 
         .student-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 12px 20px rgba(0, 0, 0, 0.15);
+            border-color: var(--cp-primary);
+            background: var(--cp-surface-2);
         }
 
         .student-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 5px;
-            background: linear-gradient(to right, #4facfe, #00f2fe);
+            content: none;
         }
 
-        .edit-student {
-            position: absolute;
-            top: 10px;
-            right: 45px;
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            background-color: #3498db;
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            opacity: 0;
-            transition: all 0.3s ease;
-            font-size: 16px;
-        }
-
+        .edit-student,
         .delete-student {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            background-color: #ff6b6b;
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            opacity: 0;
-            transition: all 0.3s ease;
-            font-size: 16px;
+            display: none;
         }
 
-        .student-card:hover .edit-student,
-        .student-card:hover .delete-student {
-            opacity: 1;
+        .student-index {
+            font-size: 0.85rem;
+            color: var(--cp-text-3);
+            min-width: 20px;
+            font-variant-numeric: tabular-nums;
         }
 
         .student-name {
-            font-size: 1.8rem;
-            font-weight: bold;
-            color: #2c3e50;
-            margin-bottom: 20px;
-            padding-top: 10px;
+            font-size: 0.98rem;
+            font-weight: 500;
+            color: var(--cp-text);
+            flex: 1;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: color 0.15s;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .student-name:hover {
-            color: #e74c3c;
-            transform: scale(1.05);
-        }
-
-        .score-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 15px;
-            margin-top: 10px;
+            color: var(--cp-primary);
         }
 
         .score-btn {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
+            width: 24px;
+            height: 24px;
             border: none;
-            font-size: 2rem;
-            font-weight: bold;
-            color: white;
+            background: transparent;
+            font-size: 1.1rem;
+            font-weight: 400;
+            color: var(--cp-text-2);
             cursor: pointer;
-            transition: all 0.2s ease;
+            border-radius: var(--cp-radius-sm);
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            transition: background 0.15s ease, color 0.15s ease;
+            line-height: 1;
         }
 
         .score-btn:hover {
-            transform: scale(1.1);
+            background: #ebebeb;
+            color: var(--cp-text);
         }
 
-        .minus-btn {
-            background: linear-gradient(to right, #ff6b6b, #ff8e8e);
+        .score-btn:active {
+            background: #d1d1d1;
         }
 
-        .plus-btn {
-            background: linear-gradient(to right, #4cd964, #2ecc71);
+        .minus-btn:hover {
+            color: var(--cp-danger);
+            background: var(--cp-danger-bg);
+        }
+
+        .plus-btn:hover {
+            color: var(--cp-primary);
+            background: #eaf2fb;
         }
 
         .student-score {
-            font-size: 2.5rem;
-            font-weight: bold;
-            color: #e74c3c;
-            min-width: 60px;
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
-
-        .student-score:hover {
-            transform: scale(1.1);
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: var(--cp-primary);
+            min-width: 36px;
+            text-align: center;
+            font-variant-numeric: tabular-nums;
+            cursor: default;
         }
 
         .score-change {
-            animation: scoreChange 0.5s ease;
+            animation: scoreChange 0.4s ease;
         }
 
         @keyframes scoreChange {
             0% { transform: scale(1); }
-            50% { transform: scale(1.3); }
+            50% { transform: scale(1.2); }
             100% { transform: scale(1); }
         }
 
-        .row-0 { background: linear-gradient(135deg, #e3f2fd, #bbdefb); }
-        .row-1 { background: linear-gradient(135deg, #f1f8e9, #dcedc8); }
-        .row-2 { background: linear-gradient(135deg, #ffebee, #ffcdd2); }
-        .row-3 { background: linear-gradient(135deg, #f3e5f5, #e1bee7); }
-        .row-4 { background: linear-gradient(135deg, #fff8e1, #ffecb3); }
+        .more-btn {
+            width: 24px;
+            height: 24px;
+            border: none;
+            background: transparent;
+            color: var(--cp-text-2);
+            cursor: pointer;
+            border-radius: var(--cp-radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            line-height: 1;
+            transition: background 0.15s ease;
+        }
+
+        .more-btn:hover {
+            background: #ebebeb;
+            color: var(--cp-text);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .row-0, .row-1, .row-2, .row-3, .row-4 {
+            background: var(--cp-surface);
+        }
 
         .modal {
             display: none;
@@ -341,47 +341,62 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
+            background-color: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             z-index: 1000;
             justify-content: center;
             align-items: center;
         }
 
         .modal-content {
-            background-color: white;
-            border-radius: 20px;
-            padding: 30px;
+            background-color: var(--cp-surface);
+            border-radius: var(--cp-radius);
+            border: 1px solid var(--cp-border);
+            padding: 24px 28px;
             width: 90%;
-            max-width: 800px;
+            max-width: 720px;
             max-height: 90vh;
             overflow-y: auto;
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
             position: relative;
         }
 
         .close-btn {
             position: absolute;
-            top: 15px;
-            right: 20px;
-            font-size: 2rem;
+            top: 12px;
+            right: 16px;
+            font-size: 1.4rem;
             cursor: pointer;
-            color: #aaa;
-            transition: color 0.3s;
-        }
-
-        .close-btn:hover {
-            color: #333;
-        }
-
-        .modal-title {
-            text-align: center;
-            font-size: 2rem;
-            margin-bottom: 25px;
-            color: #3498db;
+            color: var(--cp-text-3);
+            transition: color 0.15s;
+            width: 28px;
+            height: 28px;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 12px;
+            border-radius: var(--cp-radius-sm);
+        }
+
+        .close-btn:hover {
+            color: var(--cp-text);
+            background: #ebebeb;
+        }
+
+        .modal-title {
+            text-align: left;
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: var(--cp-text);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .modal-title i {
+            color: var(--cp-primary);
+            font-size: 1.1rem;
         }
 
         .ranking-list {
@@ -392,120 +407,135 @@
         .ranking-item {
             display: flex;
             align-items: center;
-            padding: 15px 20px;
-            margin-bottom: 12px;
-            background-color: #f8f9fa;
-            border-radius: 10px;
-            font-size: 1.4rem;
-            transition: transform 0.3s;
+            padding: 10px 14px;
+            margin-bottom: 6px;
+            background-color: var(--cp-surface-2);
+            border: 1px solid var(--cp-border);
+            border-radius: var(--cp-radius);
+            font-size: 1rem;
+            transition: border-color 0.15s;
         }
 
         .ranking-item:hover {
-            transform: translateX(10px);
-            background: linear-gradient(to right, #e3f2fd, #f8f9fa);
+            border-color: var(--cp-primary);
         }
 
         .rank-medal {
-            font-size: 2.2rem;
-            margin-right: 15px;
-            width: 40px;
+            font-size: 1.4rem;
+            margin-right: 12px;
+            width: 32px;
             text-align: center;
         }
 
         .input-group-modal {
-            margin: 25px 0;
-            text-align: center;
+            margin: 16px 0;
+            text-align: left;
         }
 
         .input-group-modal label {
             display: block;
-            margin-bottom: 12px;
-            font-size: 1.2rem;
-            color: #555;
+            margin-bottom: 6px;
+            font-size: 0.92rem;
+            color: var(--cp-text-2);
+            font-weight: 400;
         }
 
         .input-group-modal input {
             width: 100%;
-            padding: 14px 20px;
-            font-size: 1.2rem;
-            border: 2px solid #ddd;
-            border-radius: 12px;
-            margin: 10px 0;
-            text-align: center;
+            padding: 8px 12px;
+            font-size: 0.98rem;
+            border: 1px solid var(--cp-border);
+            border-radius: var(--cp-radius-sm);
+            margin: 4px 0;
+            background: var(--cp-surface-2);
+            color: var(--cp-text);
+            transition: border-color 0.15s, background 0.15s;
         }
 
         .input-group-modal input:focus {
-            border-color: #3498db;
+            border-color: var(--cp-primary);
             outline: none;
-            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+            background: var(--cp-surface);
         }
 
         .input-group-modal textarea {
             width: 100%;
-            height: 200px;
-            padding: 15px;
-            font-size: 1.1rem;
-            border: 2px solid #ddd;
-            border-radius: 12px;
-            margin: 10px 0;
+            height: 160px;
+            padding: 10px 12px;
+            font-size: 0.98rem;
+            border: 1px solid var(--cp-border);
+            border-radius: var(--cp-radius-sm);
+            margin: 4px 0;
             resize: vertical;
+            background: var(--cp-surface-2);
+            color: var(--cp-text);
         }
 
         .input-group-modal textarea:focus {
-            border-color: #3498db;
+            border-color: var(--cp-primary);
             outline: none;
-            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+            background: var(--cp-surface);
         }
 
         .action-btns-modal {
             display: flex;
-            justify-content: center;
-            gap: 20px;
-            margin-top: 25px;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-top: 20px;
         }
 
         .confirm-btn, .cancel-btn {
-            padding: 14px 35px;
-            border: none;
-            border-radius: 12px;
-            font-size: 1.1rem;
-            font-weight: bold;
+            padding: 8px 20px;
+            border: 1px solid var(--cp-border);
+            border-radius: var(--cp-radius-btn);
+            font-size: 0.95rem;
+            font-weight: 400;
             cursor: pointer;
-            transition: all 0.3s;
-            min-width: 120px;
+            transition: background 0.15s, border-color 0.15s;
+            min-width: 96px;
+            background: var(--cp-surface-2);
+            color: var(--cp-text);
         }
 
         .confirm-btn {
-            background: linear-gradient(to right, #4facfe, #00f2fe);
-            color: white;
+            background: var(--cp-primary);
+            color: #fff;
+            border-color: var(--cp-primary);
+        }
+
+        .confirm-btn:hover {
+            background: var(--cp-primary-hover);
+            border-color: var(--cp-primary-hover);
         }
 
         .cancel-btn {
-            background-color: #e0e0e0;
-            color: #666;
+            background: var(--cp-surface-2);
+            color: var(--cp-text);
         }
 
-        .confirm-btn:hover, .cancel-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        .cancel-btn:hover {
+            background: #ebebeb;
+            border-color: var(--cp-border-strong);
         }
 
         .file-input-label {
-            display: inline-block;
-            background: linear-gradient(to right, #4facfe, #00f2fe);
-            color: white;
-            padding: 12px 25px;
-            border-radius: 50px;
-            font-size: 1.1rem;
-            font-weight: bold;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--cp-surface-2);
+            color: var(--cp-text);
+            padding: 8px 16px;
+            border-radius: var(--cp-radius-btn);
+            font-size: 0.95rem;
+            font-weight: 400;
             cursor: pointer;
-            transition: all 0.3s;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--cp-border);
+            transition: background 0.15s, border-color 0.15s;
         }
 
         .file-input-label:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+            background: #ebebeb;
+            border-color: var(--cp-border-strong);
         }
 
         #fileInput {
@@ -513,47 +543,52 @@
         }
 
         .data-manage-section {
-            background: #f8f9fb;
-            border-radius: 14px;
-            padding: 18px 20px;
-            margin-bottom: 18px;
-            border: 1px solid #e8eef5;
+            background: var(--cp-surface-2);
+            border-radius: var(--cp-radius);
+            padding: 14px 16px;
+            margin-bottom: 14px;
+            border: 1px solid var(--cp-border);
         }
 
         .data-section-title {
-            font-size: 1.15rem;
-            color: #2c3e50;
-            margin-bottom: 12px;
+            font-size: 1rem;
+            color: var(--cp-text);
+            margin-bottom: 8px;
             display: flex;
             align-items: center;
             gap: 8px;
+            font-weight: 600;
+        }
+
+        .data-section-title i {
+            color: var(--cp-primary);
         }
 
         .data-desc {
-            color: #5d6d7e;
-            font-size: 0.98rem;
-            line-height: 1.6;
-            margin-bottom: 12px;
+            color: var(--cp-text-2);
+            font-size: 0.9rem;
+            line-height: 1.5;
+            margin-bottom: 10px;
         }
 
         .data-btn-group {
             display: flex;
             flex-wrap: wrap;
-            gap: 12px;
+            gap: 8px;
             align-items: center;
         }
 
         .data-btn-group .confirm-btn,
         .data-btn-group .cancel-btn {
-            padding: 10px 22px;
-            font-size: 1rem;
+            padding: 8px 16px;
+            font-size: 0.9rem;
             min-width: auto;
         }
 
         .data-hint {
-            color: #95a5a6;
-            font-size: 0.88rem;
-            margin-top: 10px;
+            color: var(--cp-text-3);
+            font-size: 0.82rem;
+            margin-top: 8px;
             line-height: 1.5;
         }
 
@@ -563,32 +598,38 @@
 
         .empty-state {
             text-align: center;
-            padding: 50px;
-            color: #7f8c8d;
-            font-size: 1.5rem;
+            padding: 40px;
+            color: var(--cp-text-3);
+            font-size: 1rem;
             grid-column: 1 / -1;
         }
 
         .notification {
             position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 18px 30px;
-            border-radius: 12px;
-            background: linear-gradient(to right, #4cd964, #2ecc71);
-            color: white;
-            font-weight: bold;
-            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+            top: 16px;
+            right: 16px;
+            padding: 12px 20px;
+            border-radius: var(--cp-radius);
+            background: var(--cp-surface);
+            color: var(--cp-text);
+            font-weight: 400;
+            font-size: 0.92rem;
+            border: 1px solid var(--cp-border);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
             transform: translateX(200%);
-            transition: transform 0.4s ease;
+            transition: transform 0.3s ease;
             z-index: 2000;
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
         }
 
-        .notification.error {
-            background: linear-gradient(to right, #ff6b6b, #ff8e8e);
+        .notification i {
+            color: #2ecc71;
+        }
+
+        .notification.error i {
+            color: var(--cp-danger);
         }
 
         .notification.show {
@@ -598,49 +639,48 @@
         .class-list {
             display: flex;
             flex-wrap: wrap;
-            gap: 12px;
-            margin-top: 15px;
-            justify-content: center;
+            gap: 8px;
+            margin-top: 12px;
+            justify-content: flex-start;
         }
 
         .class-item {
-            background: rgba(255, 255, 255, 0.9);
-            padding: 10px 20px;
-            border-radius: 50px;
+            background: var(--cp-surface-2);
+            padding: 8px 14px;
+            border-radius: var(--cp-radius-btn);
             cursor: pointer;
-            transition: all 0.3s;
-            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
-            border: 2px solid transparent;
+            transition: background 0.15s, border-color 0.15s;
+            border: 1px solid var(--cp-border);
             position: relative;
         }
 
         .class-item:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+            background: #ebebeb;
+            border-color: var(--cp-border-strong);
         }
 
         .class-item.active {
-            background: linear-gradient(to right, #4facfe, #00f2fe);
-            color: white;
-            border-color: #3498db;
-            font-weight: bold;
+            background: var(--cp-primary);
+            color: #fff;
+            border-color: var(--cp-primary);
+            font-weight: 500;
         }
 
         .class-delete-btn {
             position: absolute;
             top: -8px;
             right: -8px;
-            width: 24px;
-            height: 24px;
+            width: 20px;
+            height: 20px;
             border-radius: 50%;
-            background: #ff6b6b;
-            color: white;
+            background: var(--cp-danger);
+            color: #fff;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            font-size: 14px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            font-size: 12px;
+            border: 1px solid var(--cp-surface);
         }
 
         .class-manager-modal {
@@ -653,754 +693,845 @@
         }
 
         .step-value {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-            padding: 5px 15px;
-            border-radius: 20px;
-            font-size: 1rem;
-            font-weight: bold;
+            display: none;
         }
 
         .example-text {
-            background: #f0f7ff;
-            padding: 15px;
-            border-radius: 10px;
-            margin-top: 15px;
-            font-size: 0.9rem;
-            color: #555;
+            background: var(--cp-surface-2);
+            padding: 12px;
+            border-radius: var(--cp-radius-sm);
+            margin-top: 12px;
+            font-size: 0.88rem;
+            color: var(--cp-text-2);
             text-align: left;
+            border: 1px solid var(--cp-border);
         }
-        
+
         .password-modal {
             display: flex;
         }
-        
+
         .password-container {
-            background-color: white;
-            padding: 40px;
-            border-radius: 20px;
+            background-color: var(--cp-surface);
+            padding: 32px;
+            border-radius: var(--cp-radius);
             width: 90%;
-            max-width: 450px;
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
+            max-width: 420px;
+            border: 1px solid var(--cp-border);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
         }
-        
+
         .password-title {
             text-align: center;
-            margin-bottom: 30px;
-            color: #3498db;
-            font-size: 2rem;
+            margin-bottom: 24px;
+            color: var(--cp-text);
+            font-size: 1.5rem;
+            font-weight: 600;
         }
-        
+
         .password-logo {
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 16px;
         }
-        
+
         .password-logo i {
-            font-size: 3.5rem;
-            color: #3498db;
+            font-size: 2.8rem;
+            color: var(--cp-primary);
         }
-        
+
         .password-input-group {
-            margin-bottom: 20px;
+            margin-bottom: 16px;
         }
-        
+
         .password-input-group label {
             display: block;
-            margin-bottom: 10px;
-            font-weight: bold;
-            color: #555;
+            margin-bottom: 6px;
+            font-weight: 400;
+            color: var(--cp-text-2);
+            font-size: 0.92rem;
         }
-        
+
         .password-input-group input {
             width: 100%;
-            padding: 15px;
-            font-size: 1.1rem;
-            border: 2px solid #ddd;
-            border-radius: 12px;
-            transition: all 0.3s;
+            padding: 10px 12px;
+            font-size: 0.98rem;
+            border: 1px solid var(--cp-border);
+            border-radius: var(--cp-radius-sm);
+            background: var(--cp-surface-2);
+            color: var(--cp-text);
+            transition: border-color 0.15s, background 0.15s;
         }
-        
+
         .password-input-group input:focus {
-            border-color: #3498db;
+            border-color: var(--cp-primary);
             outline: none;
-            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+            background: var(--cp-surface);
         }
-        
+
         .password-btn {
             width: 100%;
-            padding: 15px;
-            background: linear-gradient(to right, #4facfe, #00f2fe);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-size: 1.2rem;
-            font-weight: bold;
+            padding: 10px;
+            background: var(--cp-primary);
+            color: #fff;
+            border: 1px solid var(--cp-primary);
+            border-radius: var(--cp-radius-btn);
+            font-size: 1rem;
+            font-weight: 500;
             cursor: pointer;
-            transition: all 0.3s;
-            margin-top: 10px;
+            transition: background 0.15s;
+            margin-top: 8px;
         }
-        
+
         .password-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+            background: var(--cp-primary-hover);
+            border-color: var(--cp-primary-hover);
         }
-        
+
         .password-error {
-            color: #ff6b6b;
+            color: var(--cp-danger);
             text-align: center;
-            margin-top: 15px;
+            margin-top: 12px;
             min-height: 20px;
-            font-weight: bold;
+            font-size: 0.88rem;
         }
-        
+
         .random-picker-container {
             text-align: center;
-            padding: 20px;
+            padding: 16px;
         }
-        
+
         .random-student-display {
-            font-size: 3rem;
-            font-weight: bold;
-            color: #e74c3c;
-            min-height: 100px;
+            font-size: 2.4rem;
+            font-weight: 600;
+            color: var(--cp-primary);
+            min-height: 80px;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 30px 0;
-            background: linear-gradient(135deg, #f1f8e9, #dcedc8);
-            border-radius: 15px;
-            padding: 20px;
-            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+            margin: 20px 0;
+            background: var(--cp-surface-2);
+            border: 1px solid var(--cp-border);
+            border-radius: var(--cp-radius);
+            padding: 16px;
         }
-        
+
         .random-animation {
             animation: randomBounce 0.5s infinite alternate;
         }
-        
+
         @keyframes randomBounce {
             0% { transform: scale(1); }
-            100% { transform: scale(1.1); }
+            100% { transform: scale(1.05); }
         }
-        
+
         .pick-btn {
-            background: linear-gradient(to right, #9c27b0, #e91e63);
-            color: white;
-            border: none;
-            padding: 15px 40px;
-            border-radius: 50px;
-            font-size: 1.4rem;
-            font-weight: bold;
+            background: var(--cp-primary);
+            color: #fff;
+            border: 1px solid var(--cp-primary);
+            padding: 10px 28px;
+            border-radius: var(--cp-radius-btn);
+            font-size: 1rem;
+            font-weight: 500;
             cursor: pointer;
-            transition: all 0.3s;
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+            transition: background 0.15s;
         }
-        
+
         .pick-btn:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.3);
+            background: var(--cp-primary-hover);
+            border-color: var(--cp-primary-hover);
         }
-        
+
         .pick-btn:disabled {
-            background: #cccccc;
+            background: var(--cp-surface-2);
+            color: var(--cp-text-3);
+            border-color: var(--cp-border);
             cursor: not-allowed;
         }
-        
+
         .random-history {
-            margin-top: 30px;
-            padding: 15px;
-            background-color: #f8f9fa;
-            border-radius: 10px;
+            margin-top: 20px;
+            padding: 12px;
+            background-color: var(--cp-surface-2);
+            border: 1px solid var(--cp-border);
+            border-radius: var(--cp-radius);
             max-height: 200px;
             overflow-y: auto;
         }
-        
+
         .history-title {
-            font-weight: bold;
-            margin-bottom: 10px;
-            color: #555;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--cp-text);
+            font-size: 0.95rem;
         }
-        
+
         .history-item {
-            padding: 8px;
-            border-bottom: 1px solid #eee;
+            padding: 8px 4px;
+            border-bottom: 1px solid var(--cp-border);
+            font-size: 0.9rem;
+            color: var(--cp-text-2);
         }
-        
+
         .history-item:last-child {
             border-bottom: none;
         }
-        
+
         .product-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-            gap: 25px;
-            padding: 20px;
+            gap: 12px;
+            padding: 16px;
         }
-        
+
         .product-card {
-            background-color: white;
-            border-radius: 15px;
-            padding: 15px;
+            background-color: var(--cp-surface);
+            border: 1px solid var(--cp-border);
+            border-radius: var(--cp-radius);
+            padding: 12px;
             text-align: center;
-            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
-            transition: all 0.3s ease;
+            transition: border-color 0.15s;
             position: relative;
             overflow: hidden;
         }
-        
+
+        .product-card:hover {
+            border-color: var(--cp-primary);
+        }
+
         .product-image {
             width: 100%;
-            height: 150px;
+            height: 140px;
             object-fit: cover;
-            border-radius: 10px;
-            margin-bottom: 15px;
-            background-color: #f5f5f5;
+            border-radius: var(--cp-radius-sm);
+            margin-bottom: 12px;
+            background-color: var(--cp-surface-2);
             display: flex;
             align-items: center;
             justify-content: center;
-            color: #aaa;
+            color: var(--cp-text-3);
         }
-        
+
         .product-name {
-            font-size: 1.4rem;
-            font-weight: bold;
-            margin-bottom: 10px;
-            color: #333;
+            font-size: 1.05rem;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: var(--cp-text);
         }
-        
+
         .product-points {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: #e74c3c;
-            margin-bottom: 15px;
+            font-size: 1.15rem;
+            font-weight: 600;
+            color: var(--cp-primary);
+            margin-bottom: 10px;
         }
-        
+
         .product-stock {
             position: absolute;
-            top: 10px;
-            right: 10px;
-            background: rgba(0,0,0,0.7);
-            color: white;
-            padding: 5px 10px;
-            border-radius: 20px;
-            font-size: 0.9rem;
+            top: 8px;
+            right: 8px;
+            background: rgba(0,0,0,0.6);
+            color: #fff;
+            padding: 3px 8px;
+            border-radius: var(--cp-radius-sm);
+            font-size: 0.8rem;
         }
-        
+
         .product-status {
             position: absolute;
-            top: 10px;
-            left: 10px;
-            padding: 5px 10px;
-            border-radius: 20px;
-            font-size: 0.9rem;
-            font-weight: bold;
+            top: 8px;
+            left: 8px;
+            padding: 3px 8px;
+            border-radius: var(--cp-radius-sm);
+            font-size: 0.8rem;
+            font-weight: 500;
         }
-        
+
         .status-available {
-            background-color: #4caf50;
-            color: white;
+            background-color: #2ecc71;
+            color: #fff;
         }
-        
+
         .status-soldout {
-            background-color: #f44336;
-            color: white;
+            background-color: var(--cp-danger);
+            color: #fff;
         }
-        
+
         .redeem-btn {
-            background: linear-gradient(to right, #4facfe, #00f2fe);
-            color: white;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 20px;
-            font-size: 1rem;
-            font-weight: bold;
+            background: var(--cp-primary);
+            color: #fff;
+            border: 1px solid var(--cp-primary);
+            padding: 8px 14px;
+            border-radius: var(--cp-radius-btn);
+            font-size: 0.92rem;
+            font-weight: 400;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: background 0.15s;
             width: 100%;
-            margin-top: 5px;
+            margin-top: 4px;
         }
-        
+
+        .redeem-btn:hover {
+            background: var(--cp-primary-hover);
+            border-color: var(--cp-primary-hover);
+        }
+
         .redeem-btn:disabled {
-            background: #cccccc;
+            background: var(--cp-surface-2);
+            color: var(--cp-text-3);
+            border-color: var(--cp-border);
             cursor: not-allowed;
         }
-        
+
         .record-table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 20px;
+            margin-top: 16px;
         }
-        
+
         .record-table th, .record-table td {
-            padding: 12px 15px;
+            padding: 10px 12px;
             text-align: left;
-            border-bottom: 1px solid #eee;
+            border-bottom: 1px solid var(--cp-border);
+            font-size: 0.9rem;
         }
-        
+
         .record-table th {
-            background-color: #f5f7fa;
-            color: #333;
-            font-weight: bold;
+            background-color: var(--cp-surface-2);
+            color: var(--cp-text);
+            font-weight: 600;
         }
-        
+
         .record-table tr:hover {
-            background-color: #f9f9f9;
+            background-color: var(--cp-surface-2);
         }
-        
+
         .filter-controls {
             display: flex;
-            gap: 15px;
-            margin-bottom: 20px;
+            gap: 8px;
+            margin-bottom: 16px;
             flex-wrap: wrap;
         }
-        
+
         .filter-controls select, .filter-controls button, .filter-controls input {
-            padding: 10px 15px;
-            border-radius: 8px;
-            border: 1px solid #ddd;
-            font-size: 1rem;
+            padding: 8px 12px;
+            border-radius: var(--cp-radius-sm);
+            border: 1px solid var(--cp-border);
+            font-size: 0.92rem;
+            background: var(--cp-surface-2);
+            color: var(--cp-text);
         }
-        
+
         .filter-controls button {
-            background: linear-gradient(to right, #4facfe, #00f2fe);
-            color: white;
-            border: none;
+            background: var(--cp-primary);
+            color: #fff;
+            border-color: var(--cp-primary);
             cursor: pointer;
         }
-        
+
+        .filter-controls button:hover {
+            background: var(--cp-primary-hover);
+            border-color: var(--cp-primary-hover);
+        }
+
         .cart-icon {
             position: absolute;
-            top: 10px;
-            left: 10px;
-            width: 36px;
-            height: 36px;
+            top: 8px;
+            left: 8px;
+            width: 32px;
+            height: 32px;
             border-radius: 50%;
-            background: linear-gradient(to right, #ff9800, #ffc107);
-            color: white;
+            background: var(--cp-primary);
+            color: #fff;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            font-size: 18px;
-            box-shadow: 0 3px 6px rgba(0,0,0,0.16);
+            font-size: 15px;
             z-index: 10;
         }
-        
+
         .cart-popup {
             position: fixed;
-            bottom: 30px;
-            right: 30px;
-            width: 350px;
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            bottom: 20px;
+            right: 20px;
+            width: 340px;
+            background: var(--cp-surface);
+            border: 1px solid var(--cp-border);
+            border-radius: var(--cp-radius);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.12);
             z-index: 1000;
             display: none;
             overflow: hidden;
         }
-        
+
         .cart-header {
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-            padding: 15px 20px;
-            color: white;
-            font-size: 1.3rem;
-            font-weight: bold;
+            background: var(--cp-surface-2);
+            border-bottom: 1px solid var(--cp-border);
+            padding: 12px 16px;
+            color: var(--cp-text);
+            font-size: 1rem;
+            font-weight: 600;
             display: flex;
             justify-content: space-between;
         }
-        
+
         .cart-close {
             cursor: pointer;
-            font-size: 1.2rem;
+            font-size: 1.1rem;
+            color: var(--cp-text-3);
         }
-        
+
         .cart-body {
-            max-height: 300px;
+            max-height: 280px;
             overflow-y: auto;
-            padding: 15px;
+            padding: 12px;
         }
-        
+
         .cart-item {
             display: flex;
             align-items: center;
-            padding: 10px 0;
-            border-bottom: 1px solid #eee;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--cp-border);
         }
-        
+
         .cart-item-image {
-            width: 50px;
-            height: 50px;
-            border-radius: 8px;
-            background: #f5f5f5;
-            margin-right: 15px;
+            width: 44px;
+            height: 44px;
+            border-radius: var(--cp-radius-sm);
+            background: var(--cp-surface-2);
+            margin-right: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: #aaa;
+            color: var(--cp-text-3);
         }
-        
+
         .cart-item-info {
             flex: 1;
         }
-        
+
         .cart-item-name {
-            font-weight: bold;
-            margin-bottom: 5px;
+            font-weight: 500;
+            margin-bottom: 4px;
+            font-size: 0.92rem;
+            color: var(--cp-text);
         }
-        
+
         .cart-item-points {
-            color: #e74c3c;
-            font-weight: bold;
+            color: var(--cp-primary);
+            font-weight: 600;
+            font-size: 0.88rem;
         }
-        
+
         .cart-footer {
-            padding: 15px;
-            background: #f9f9f9;
-            border-top: 1px solid #eee;
+            padding: 12px 16px;
+            background: var(--cp-surface-2);
+            border-top: 1px solid var(--cp-border);
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
-        
+
         .cart-total {
-            font-weight: bold;
-            font-size: 1.1rem;
+            font-weight: 600;
+            font-size: 1rem;
+            color: var(--cp-text);
         }
-        
+
         .checkout-btn {
-            background: linear-gradient(to right, #4caf50, #8bc34a);
-            color: white;
-            border: none;
-            padding: 8px 20px;
-            border-radius: 20px;
-            font-weight: bold;
+            background: var(--cp-primary);
+            color: #fff;
+            border: 1px solid var(--cp-primary);
+            padding: 8px 16px;
+            border-radius: var(--cp-radius-btn);
+            font-weight: 400;
+            font-size: 0.92rem;
             cursor: pointer;
         }
-        
+
+        .checkout-btn:hover {
+            background: var(--cp-primary-hover);
+            border-color: var(--cp-primary-hover);
+        }
+
         .product-form {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 20px;
+            gap: 16px;
         }
-        
+
         .form-group {
-            margin-bottom: 15px;
+            margin-bottom: 12px;
         }
-        
+
         .form-group label {
             display: block;
-            margin-bottom: 8px;
-            font-weight: bold;
-            color: #555;
+            margin-bottom: 6px;
+            font-weight: 500;
+            color: var(--cp-text-2);
+            font-size: 0.9rem;
         }
-        
+
         .form-group input, .form-group select, .form-group textarea {
             width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
+            padding: 8px 12px;
+            border: 1px solid var(--cp-border);
+            border-radius: var(--cp-radius-sm);
+            background: var(--cp-surface-2);
+            color: var(--cp-text);
+            font-size: 0.92rem;
         }
-        
+
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            border-color: var(--cp-primary);
+            outline: none;
+            background: var(--cp-surface);
+        }
+
         .image-upload {
-            border: 2px dashed #ddd;
-            padding: 20px;
+            border: 2px dashed var(--cp-border-strong);
+            padding: 16px;
             text-align: center;
-            border-radius: 8px;
+            border-radius: var(--cp-radius);
             cursor: pointer;
             grid-column: span 2;
+            color: var(--cp-text-2);
         }
-        
+
         .image-upload:hover {
-            border-color: #4facfe;
+            border-color: var(--cp-primary);
+            color: var(--cp-primary);
         }
-        
+
         .image-preview {
             max-width: 100%;
-            max-height: 200px;
-            margin-top: 15px;
+            max-height: 180px;
+            margin-top: 12px;
             display: none;
         }
-        
+
         .tabs {
             display: flex;
-            border-bottom: 2px solid #eee;
-            margin-bottom: 20px;
-            gap: 10px;
+            border-bottom: 1px solid var(--cp-border);
+            margin-bottom: 16px;
+            gap: 4px;
         }
-        
+
         .tab {
-            padding: 12px 25px;
+            padding: 8px 16px;
             cursor: pointer;
-            font-weight: bold;
-            color: #666;
+            font-weight: 500;
+            color: var(--cp-text-2);
             border-bottom: 2px solid transparent;
-            transition: all 0.3s;
+            transition: color 0.15s, border-color 0.15s;
+            font-size: 0.95rem;
         }
-        
+
+        .tab:hover {
+            color: var(--cp-text);
+        }
+
         .tab.active {
-            color: #3498db;
-            border-bottom: 2px solid #3498db;
+            color: var(--cp-primary);
+            border-bottom: 2px solid var(--cp-primary);
         }
-        
+
         .summary-table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 20px;
+            margin-top: 16px;
             font-size: 0.9rem;
         }
-        
+
         .summary-table th, .summary-table td {
-            padding: 12px 15px;
+            padding: 10px 12px;
             text-align: left;
-            border-bottom: 1px solid #eee;
+            border-bottom: 1px solid var(--cp-border);
         }
-        
+
         .summary-table th {
-            background-color: #f5f7fa;
-            color: #333;
-            font-weight: bold;
+            background-color: var(--cp-surface-2);
+            color: var(--cp-text);
+            font-weight: 600;
         }
-        
+
         .summary-table tr:hover {
-            background-color: #f9f9f9;
+            background-color: var(--cp-surface-2);
         }
-        
+
         .tab-content {
             display: none;
         }
-        
+
         .tab-content.active {
             display: block;
         }
-        
+
         .random-points-control {
             display: flex;
             justify-content: center;
-            gap: 15px;
-            margin-top: 20px;
+            gap: 12px;
+            margin-top: 16px;
         }
-        
+
         .points-input {
-            padding: 10px 15px;
+            padding: 8px 12px;
             width: 100px;
-            border-radius: 8px;
-            border: 2px solid #ddd;
-            font-size: 1.1rem;
+            border-radius: var(--cp-radius-sm);
+            border: 1px solid var(--cp-border);
+            font-size: 0.98rem;
             text-align: center;
+            background: var(--cp-surface-2);
+            color: var(--cp-text);
         }
-        
+
+        .points-input:focus {
+            border-color: var(--cp-primary);
+            outline: none;
+            background: var(--cp-surface);
+        }
+
         .product-manage-btns {
             display: flex;
-            gap: 10px;
-            margin-top: 10px;
+            gap: 6px;
+            margin-top: 8px;
             justify-content: center;
         }
-        
+
         .manage-btn {
-            padding: 8px 12px;
-            border-radius: 20px;
-            font-size: 0.9rem;
-            font-weight: bold;
+            padding: 6px 10px;
+            border-radius: var(--cp-radius-btn);
+            font-size: 0.85rem;
+            font-weight: 400;
             cursor: pointer;
-            transition: all 0.3s;
-            border: none;
-            color: white;
+            transition: background 0.15s;
+            border: 1px solid var(--cp-border);
+            color: var(--cp-text);
+            background: var(--cp-surface-2);
             display: flex;
             align-items: center;
-            gap: 5px;
+            gap: 4px;
         }
-        
+
         .deactivate-btn {
-            background: linear-gradient(to right, #f39c12, #f1c40f);
+            color: #b8860b;
         }
-        
+        .deactivate-btn:hover {
+            background: #fff8e1;
+            border-color: #b8860b;
+        }
+
         .activate-btn {
-            background: linear-gradient(to right, #2ecc71, #27ae60);
+            color: #2ecc71;
         }
-        
+        .activate-btn:hover {
+            background: #eafaf1;
+            border-color: #2ecc71;
+        }
+
         .delete-btn {
-            background: linear-gradient(to right, #e74c3c, #c0392b);
+            color: var(--cp-danger);
         }
-        
+        .delete-btn:hover {
+            background: var(--cp-danger-bg);
+            border-color: var(--cp-danger);
+        }
+
         .manage-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+            background: #ebebeb;
         }
-        
+
         .inactive-product {
-            opacity: 0.7;
+            opacity: 0.6;
             position: relative;
-            background-color: #f5f5f5;
+            background-color: var(--cp-surface-2);
         }
-        
+
         .inactive-product::after {
             content: "已下架";
             position: absolute;
             top: 50%;
             left: 50%;
-            transform: translate(-50%, -50%) rotate(-20deg);
-            background: rgba(0,0,0,0.7);
-            color: white;
-            padding: 10px 20px;
-            border-radius: 10px;
-            font-weight: bold;
-            font-size: 1.5rem;
+            transform: translate(-50%, -50%) rotate(-15deg);
+            background: rgba(0,0,0,0.5);
+            color: #fff;
+            padding: 6px 14px;
+            border-radius: var(--cp-radius-sm);
+            font-weight: 500;
+            font-size: 1rem;
             z-index: 5;
         }
-        
+
         .delete-product-btn {
-            background: linear-gradient(to right, #f44336, #e91e63);
-            color: white;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 20px;
-            font-size: 1rem;
-            font-weight: bold;
+            background: var(--cp-surface-2);
+            color: var(--cp-danger);
+            border: 1px solid var(--cp-border);
+            padding: 6px 12px;
+            border-radius: var(--cp-radius-btn);
+            font-size: 0.88rem;
+            font-weight: 400;
             cursor: pointer;
-            transition: all 0.3s;
             width: 100%;
-            margin-top: 5px;
+            margin-top: 4px;
         }
-        
+
+        .delete-product-btn:hover {
+            background: var(--cp-danger-bg);
+            border-color: var(--cp-danger);
+        }
+
         .search-box {
-            padding: 10px 15px;
-            border-radius: 8px;
-            border: 1px solid #ddd;
-            font-size: 1rem;
+            padding: 8px 12px;
+            border-radius: var(--cp-radius-sm);
+            border: 1px solid var(--cp-border);
+            font-size: 0.92rem;
             min-width: 200px;
+            background: var(--cp-surface-2);
+            color: var(--cp-text);
         }
-        
+
+        .search-box:focus {
+            border-color: var(--cp-primary);
+            outline: none;
+            background: var(--cp-surface);
+        }
+
         .delete-all-confirm {
             display: flex;
-            justify-content: center;
-            gap: 15px;
-            margin-top: 20px;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-top: 16px;
         }
 
         .view-mode-select {
-            padding: 8px 15px;
-            border-radius: 20px;
-            border: none;
-            font-size: 1rem;
-            background: rgba(255, 255, 255, 0.9);
-            box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+            padding: 6px 12px;
+            border-radius: var(--cp-radius-btn);
+            border: 1px solid var(--cp-border);
+            font-size: 0.92rem;
+            background: var(--cp-surface-2);
+            color: var(--cp-text);
             cursor: pointer;
             outline: none;
         }
 
+        .view-mode-select:hover {
+            background: #ebebeb;
+        }
+
         .groups-container {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 25px;
-            padding: 40px;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 12px;
+            padding: 16px;
         }
 
         .group-card {
-            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
-            border-radius: 15px;
-            padding: 20px;
-            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+            background: var(--cp-surface);
+            border: 1px solid var(--cp-border);
+            border-radius: var(--cp-radius);
+            padding: 14px;
             position: relative;
             overflow: hidden;
+            transition: border-color 0.15s;
         }
 
-        .group-card:nth-child(3n+1) {
-            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+        .group-card:hover {
+            border-color: var(--cp-primary);
         }
 
-        .group-card:nth-child(3n+2) {
-            background: linear-gradient(135deg, #f1f8e9, #dcedc8);
-        }
-
+        .group-card:nth-child(3n+1),
+        .group-card:nth-child(3n+2),
         .group-card:nth-child(3n+3) {
-            background: linear-gradient(135deg, #ffebee, #ffcdd2);
+            background: var(--cp-surface);
         }
 
         .group-delete-btn {
             position: absolute;
-            top: 10px;
-            right: 10px;
-            width: 28px;
-            height: 28px;
+            top: 8px;
+            right: 8px;
+            width: 22px;
+            height: 22px;
             border-radius: 50%;
-            background-color: #ff6b6b;
-            color: white;
+            background-color: var(--cp-danger);
+            color: #fff;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            font-size: 16px;
+            font-size: 13px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.2);
         }
 
         .group-title {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: #2c3e50;
-            margin-bottom: 15px;
+            font-size: 1.15rem;
+            font-weight: 600;
+            color: var(--cp-text);
+            margin-bottom: 10px;
             cursor: pointer;
-            text-align: center;
-            padding: 5px;
-            border-radius: 8px;
-            background: rgba(255,255,255,0.5);
+            text-align: left;
+            padding: 4px 8px;
+            border-radius: var(--cp-radius-sm);
+        }
+
+        .group-title:hover {
+            background: var(--cp-surface-2);
+            color: var(--cp-primary);
         }
 
         .group-score-container {
             display: flex;
             justify-content: center;
             align-items: center;
-            gap: 15px;
-            margin: 15px 0;
+            gap: 12px;
+            margin: 10px 0;
         }
 
         .group-score {
-            font-size: 2.2rem;
-            font-weight: bold;
-            color: #e74c3c;
-            min-width: 60px;
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: var(--cp-primary);
+            min-width: 50px;
             text-align: center;
             cursor: pointer;
-            padding: 5px;
-            border-radius: 5px;
-            transition: all 0.3s;
+            padding: 4px 8px;
+            border-radius: var(--cp-radius-sm);
+            transition: background 0.15s;
         }
 
         .group-score:hover {
-            background-color: rgba(0,0,0,0.05);
+            background-color: var(--cp-surface-2);
         }
 
         .group-score-input {
-            font-size: 2.2rem;
-            font-weight: bold;
-            color: #e74c3c;
-            width: 100px;
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: var(--cp-primary);
+            width: 90px;
             text-align: center;
-            border: 2px solid #3498db;
-            border-radius: 5px;
-            background: white;
+            border: 1px solid var(--cp-primary);
+            border-radius: var(--cp-radius-sm);
+            background: var(--cp-surface);
+            padding: 2px 6px;
         }
 
         .group-student-list {
-            margin-top: 15px;
-            border-top: 1px dashed #ccc;
-            padding-top: 15px;
+            margin-top: 10px;
+            border-top: 1px solid var(--cp-border);
+            padding-top: 10px;
         }
 
         .group-student-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 8px 5px;
-            border-bottom: 1px solid #eee;
+            padding: 6px 4px;
+            border-bottom: 1px solid var(--cp-border);
             cursor: move;
-            transition: background-color 0.2s;
+            transition: background-color 0.15s;
         }
 
         .group-student-item:hover {
-            background-color: rgba(255, 255, 255, 0.5);
+            background-color: var(--cp-surface-2);
         }
 
         .group-student-item:last-child {
@@ -1408,36 +1539,38 @@
         }
 
         .group-student-name {
-            font-size: 1.1rem;
-            font-weight: 500;
+            font-size: 0.95rem;
+            font-weight: 400;
+            color: var(--cp-text);
         }
 
         .group-student-score {
-            font-weight: bold;
-            color: #e74c3c;
-            min-width: 40px;
+            font-weight: 600;
+            color: var(--cp-primary);
+            min-width: 36px;
             text-align: center;
+            font-size: 0.95rem;
         }
 
         .student-manager-modal .input-group-modal {
-            margin: 15px 0;
+            margin: 12px 0;
         }
 
         .student-list {
-            max-height: 300px;
+            max-height: 280px;
             overflow-y: auto;
-            margin-top: 20px;
-            border: 1px solid #eee;
-            border-radius: 10px;
-            padding: 10px;
+            margin-top: 16px;
+            border: 1px solid var(--cp-border);
+            border-radius: var(--cp-radius);
+            padding: 8px;
         }
 
         .student-list-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 10px;
-            border-bottom: 1px solid #eee;
+            padding: 8px;
+            border-bottom: 1px solid var(--cp-border);
         }
 
         .student-list-item:last-child {
@@ -1445,108 +1578,163 @@
         }
 
         .student-list-delete {
-            color: #ff6b6b;
+            color: var(--cp-danger);
             cursor: pointer;
-            font-size: 1.2rem;
+            font-size: 1rem;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: var(--cp-radius-sm);
+        }
+
+        .student-list-delete:hover {
+            background: var(--cp-danger-bg);
         }
 
         .ranking-type-select {
-            padding: 10px 15px;
-            border-radius: 8px;
-            border: 1px solid #ddd;
-            font-size: 1rem;
-            margin-bottom: 20px;
+            padding: 8px 12px;
+            border-radius: var(--cp-radius-sm);
+            border: 1px solid var(--cp-border);
+            font-size: 0.95rem;
+            background: var(--cp-surface-2);
+            color: var(--cp-text);
             display: block;
-            margin: 0 auto 20px;
+            margin: 0 auto 16px;
         }
 
         .history-btn {
-            background: linear-gradient(to right, #673ab7, #9c27b0);
-            color: white;
-            border: none;
+            background: var(--cp-surface-2);
+            color: var(--cp-text-2);
+            border: 1px solid var(--cp-border);
             padding: 6px 12px;
-            border-radius: 15px;
-            font-size: 0.9rem;
+            border-radius: var(--cp-radius-btn);
+            font-size: 0.88rem;
             cursor: pointer;
-            margin-top: 10px;
-            display: inline-block;
+            margin-top: 8px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .history-btn:hover {
+            background: #ebebeb;
+            border-color: var(--cp-border-strong);
         }
 
         .reason-tags {
             display: flex;
             flex-wrap: wrap;
-            gap: 8px;
-            margin: 15px 0;
+            gap: 6px;
+            margin: 12px 0;
         }
 
         .reason-tag {
-            background: linear-gradient(to right, #4facfe, #00f2fe);
-            color: white;
-            padding: 5px 12px;
-            border-radius: 15px;
-            font-size: 0.9rem;
+            background: var(--cp-surface-2);
+            color: var(--cp-text);
+            border: 1px solid var(--cp-border);
+            padding: 4px 10px;
+            border-radius: var(--cp-radius-btn);
+            font-size: 0.85rem;
             cursor: pointer;
             position: relative;
             display: flex;
             align-items: center;
         }
 
+        .reason-tag:hover {
+            background: #ebebeb;
+            border-color: var(--cp-primary);
+        }
+
         .reason-tag .delete-tag {
-            margin-left: 5px;
-            font-size: 0.8rem;
-            width: 16px;
-            height: 16px;
+            margin-left: 4px;
+            font-size: 0.75rem;
+            width: 14px;
+            height: 14px;
             border-radius: 50%;
-            background: rgba(255,255,255,0.3);
+            background: var(--cp-border);
+            color: var(--cp-text);
             display: flex;
             align-items: center;
             justify-content: center;
         }
 
         .reason-tag .delete-tag:hover {
-            background: rgba(255,255,255,0.5);
+            background: var(--cp-danger);
+            color: #fff;
         }
 
         .timer-container {
             display: flex;
             flex-direction: column;
             align-items: center;
-            margin: 20px 0;
+            margin: 16px 0;
         }
 
         .timer-display {
-            font-size: 2.5rem;
-            font-weight: bold;
-            color: #e74c3c;
-            margin: 15px 0;
+            font-size: 2.2rem;
+            font-weight: 600;
+            color: var(--cp-primary);
+            margin: 12px 0;
+            font-variant-numeric: tabular-nums;
         }
 
         .timer-controls {
             display: flex;
-            gap: 10px;
+            gap: 8px;
         }
 
         .timer-btn {
-            padding: 8px 15px;
-            border-radius: 20px;
-            border: none;
-            font-weight: bold;
+            padding: 8px 16px;
+            border-radius: var(--cp-radius-btn);
+            border: 1px solid var(--cp-border);
+            font-weight: 400;
+            font-size: 0.92rem;
             cursor: pointer;
+            background: var(--cp-surface-2);
+            color: var(--cp-text);
+            transition: background 0.15s;
+        }
+
+        .timer-btn:hover {
+            background: #ebebeb;
+            border-color: var(--cp-border-strong);
         }
 
         .timer-start {
-            background: linear-gradient(to right, #4cd964, #2ecc71);
+            background: var(--cp-primary);
+            color: #fff;
+            border-color: var(--cp-primary);
             color: white;
+        }
+
+        .timer-start:hover {
+            background: var(--cp-primary-hover);
+            border-color: var(--cp-primary-hover);
         }
 
         .timer-pause {
-            background: linear-gradient(to right, #f39c12, #f1c40f);
-            color: white;
+            background: #b8860b;
+            color: #fff;
+            border-color: #b8860b;
+        }
+
+        .timer-pause:hover {
+            background: #8b6508;
+            border-color: #8b6508;
         }
 
         .timer-reset {
-            background: linear-gradient(to right, #e74c3c, #c0392b);
-            color: white;
+            background: var(--cp-danger);
+            color: #fff;
+            border-color: var(--cp-danger);
+        }
+
+        .timer-reset:hover {
+            background: #a02316;
+            border-color: #a02316;
         }
 
         .history-modal-content {
@@ -1556,7 +1744,7 @@
 
         .history-item {
             padding: 10px;
-            border-bottom: 1px solid #eee;
+            border-bottom: 1px solid var(--cp-border);
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -1567,69 +1755,94 @@
         }
 
         .history-action {
-            font-weight: bold;
-            color: #e74c3c;
+            font-weight: 600;
+            color: var(--cp-primary);
+        }
+
+        .history-action.minus {
+            color: var(--cp-danger);
         }
 
         .history-reason {
-            color: #666;
-            font-size: 0.9rem;
+            color: var(--cp-text-2);
+            font-size: 0.88rem;
+            margin-top: 2px;
         }
 
         .history-time {
-            color: #999;
+            color: var(--cp-text-3);
             font-size: 0.8rem;
+            margin-top: 2px;
         }
 
         .undo-btn {
-            background: linear-gradient(to right, #ff9800, #ffc107);
-            color: white;
-            border: none;
-            padding: 5px 10px;
-            border-radius: 15px;
-            font-size: 0.8rem;
+            background: var(--cp-surface-2);
+            color: var(--cp-text-2);
+            border: 1px solid var(--cp-border);
+            padding: 4px 10px;
+            border-radius: var(--cp-radius-btn);
+            font-size: 0.82rem;
             cursor: pointer;
+            margin-left: 8px;
+        }
+
+        .undo-btn:hover {
+            background: #ebebeb;
+            border-color: var(--cp-border-strong);
         }
 
         .group-action-btn {
-            background: linear-gradient(to right, #9c27b0, #e91e63);
-            color: white;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 20px;
+            background: var(--cp-primary);
+            color: #fff;
+            border: 1px solid var(--cp-primary);
+            padding: 8px 14px;
+            border-radius: var(--cp-radius-btn);
             font-size: 0.9rem;
             cursor: pointer;
             margin-top: 10px;
         }
 
+        .group-action-btn:hover {
+            background: var(--cp-primary-hover);
+            border-color: var(--cp-primary-hover);
+        }
+
         .student-score-controls {
             display: flex;
-            gap: 5px;
+            gap: 4px;
         }
 
         .small-score-btn {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            border: none;
-            font-size: 1.2rem;
-            font-weight: bold;
-            color: white;
+            width: 26px;
+            height: 26px;
+            border-radius: var(--cp-radius-sm);
+            border: 1px solid var(--cp-border);
+            background: var(--cp-surface-2);
+            font-size: 1rem;
+            font-weight: 400;
+            color: var(--cp-text-2);
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
+            transition: background 0.15s;
+        }
+
+        .small-score-btn:hover {
+            background: #ebebeb;
+            color: var(--cp-text);
         }
 
         .leader-badge {
             display: inline-block;
-            background: linear-gradient(to right, #ff9800, #ffc107);
-            color: white;
-            font-size: 0.7rem;
-            padding: 2px 6px;
-            border-radius: 10px;
-            margin-left: 5px;
-            font-weight: bold;
+            background: #fff8e1;
+            color: #b8860b;
+            border: 1px solid #b8860b;
+            font-size: 0.72rem;
+            padding: 1px 6px;
+            border-radius: var(--cp-radius-sm);
+            margin-left: 4px;
+            font-weight: 500;
         }
 
         .group-action-modal {
@@ -1638,7 +1851,46 @@
 
         .dragging {
             opacity: 0.5;
-            background-color: #f0f0f0;
+            background-color: var(--cp-surface-2);
+        }
+
+        /* 详情弹窗专用样式 */
+        .detail-section {
+            margin-bottom: 16px;
+        }
+
+        .detail-section-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--cp-text);
+            margin-bottom: 8px;
+            padding-bottom: 4px;
+            border-bottom: 1px solid var(--cp-border);
+        }
+
+        .detail-info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 0;
+            font-size: 0.9rem;
+            color: var(--cp-text-2);
+        }
+
+        .detail-info-row span:last-child {
+            color: var(--cp-text);
+            font-weight: 500;
+        }
+
+        .detail-history-list {
+            max-height: 240px;
+            overflow-y: auto;
+        }
+
+        .detail-history-empty {
+            color: var(--cp-text-3);
+            font-size: 0.88rem;
+            text-align: center;
+            padding: 16px;
         }
     </style>
 </head>
@@ -1649,7 +1901,7 @@
             <div class="password-logo">
                 <i class="fas fa-lock"></i>
             </div>
-            <h2 class="password-title">课堂积分管理系统</h2>
+            <h2 class="password-title">ClassPoints</h2>
             <div id="passwordForm">
                 <div class="password-input-group">
                     <label for="passwordInput">请输入密码：</label>
@@ -1682,17 +1934,14 @@
         <header>
             <div class="class-controls">
                 <div class="class-title" id="classTitleBtn">
-                    <span>三年(4)班积分系统</span>
-                    <span class="emoji">📚✨</span>
+                    <span>ClassPoints</span>
                 </div>
                 <select id="viewMode" class="view-mode-select">
                     <option value="individual">个人积分</option>
                     <option value="group">小组积分</option>
                 </select>
             </div>
-            
-            <div class="step-value">当前步值: <span id="currentStep">1</span></div>
-            
+
             <div class="class-manager">
                 <button class="class-btn" id="newClassBtn">
                     <i class="fas fa-plus-circle"></i> 创建新班级
@@ -1708,9 +1957,9 @@
                 </button>
             </div>
         </header>
-        
+
         <div class="menu-bar">
-            <button class="menu-btn individual-only" id="addAllBtn">
+            <button class="menu-btn individual-only primary" id="addAllBtn">
                 <i class="fas fa-user-friends"></i> 全班加分
             </button>
             <button class="menu-btn individual-only" id="resetAllBtn">
@@ -1719,7 +1968,7 @@
             <button class="menu-btn" id="rankingBtn">
                 <i class="fas fa-trophy"></i> 排行榜
             </button>
-            <button class="menu-btn random" id="randomPickBtn">
+            <button class="menu-btn" id="randomPickBtn">
                 <i class="fas fa-random"></i> 随机点名
             </button>
             <label class="file-input-label" for="fileInput">
@@ -1735,19 +1984,16 @@
             <button class="menu-btn delete" id="deleteAllBtn">
                 <i class="fas fa-trash-alt"></i> 删除所有学生
             </button>
-            <button class="menu-btn step" id="changeStepBtn">
-                <i class="fas fa-football"></i> 修改步值
-            </button>
-            <button class="menu-btn shop" id="shopBtn">
+            <button class="menu-btn" id="shopBtn">
                 <i class="fas fa-store"></i> 积分商城
             </button>
-            <button class="menu-btn record" id="recordBtn">
+            <button class="menu-btn" id="recordBtn">
                 <i class="fas fa-history"></i> 兑换记录
             </button>
             <button class="menu-btn summary individual-only" id="summaryBtn">
                 <i class="fas fa-calculator"></i> 积分汇总
             </button>
-            <button class="menu-btn" id="dataManageBtn" style="background: linear-gradient(to right, #11998e, #38ef7d);">
+            <button class="menu-btn" id="dataManageBtn">
                 <i class="fas fa-database"></i> 数据管理
             </button>
             <!-- 小组模式专用按钮 -->
@@ -1773,7 +2019,7 @@
         <div class="modal-content">
             <span class="close-btn" id="closeRanking">&times;</span>
             <h2 class="modal-title">
-                <i class="fas fa-trophy"></i> 积分排行榜 🏆
+                <i class="fas fa-trophy"></i> 积分排行榜
             </h2>
             <select id="rankingType" class="ranking-type-select">
                 <option value="individual">个人排行榜</option>
@@ -1846,20 +2092,32 @@
         </div>
     </div>
     
-    <!-- 修改步值模态框 -->
-    <div class="modal" id="changeStepModal">
-        <div class="modal-content">
-            <span class="close-btn" id="closeChangeStep">&times;</span>
+    <!-- 学生详情模态框（点 ⋯ 打开） -->
+    <div class="modal" id="studentDetailModal">
+        <div class="modal-content" style="max-width: 560px;">
+            <span class="close-btn" id="closeStudentDetail">&times;</span>
             <h2 class="modal-title">
-                <i class="fas fa-football"></i> 修改积分步值
+                <i class="fas fa-id-card"></i> <span id="detailStudentName">学生详情</span>
             </h2>
-            <div class="input-group-modal">
-                <label for="stepValueInput">请输入加减分步值：</label>
-                <input type="number" id="stepValueInput" min="1" value="1">
+            <div class="detail-section">
+                <div class="detail-section-title">基本信息</div>
+                <div class="detail-info-row"><span>姓名</span><span id="detailName"></span></div>
+                <div class="detail-info-row"><span>序号</span><span id="detailIndex"></span></div>
+                <div class="detail-info-row"><span>当前积分</span><span id="detailScore"></span></div>
+            </div>
+            <div class="detail-section">
+                <div class="detail-section-title">小组信息</div>
+                <div class="detail-info-row"><span>所属小组</span><span id="detailGroup"></span></div>
+                <div class="detail-info-row"><span>是否组长</span><span id="detailIsLeader"></span></div>
+            </div>
+            <div class="detail-section">
+                <div class="detail-section-title">改分记录</div>
+                <div class="detail-history-list" id="detailHistoryList">
+                    <!-- 改分记录将通过JS动态生成 -->
+                </div>
             </div>
             <div class="action-btns-modal">
-                <button class="confirm-btn" id="confirmChangeStep">确定</button>
-                <button class="cancel-btn" id="cancelChangeStep">取消</button>
+                <button class="cancel-btn" id="closeDetailBtn">关闭</button>
             </div>
         </div>
     </div>
@@ -2108,11 +2366,15 @@
     
     <!-- 加减分原因模态框 -->
     <div class="modal" id="reasonModal">
-        <div class="modal-content">
+        <div class="modal-content" style="max-width: 560px;">
             <span class="close-btn" id="closeReason">&times;</span>
             <h2 class="modal-title">
-                <i class="fas fa-tag"></i> 选择加减分原因
+                <i class="fas fa-tag"></i> 加减分
             </h2>
+            <div class="input-group-modal">
+                <label for="modalScoreInput">分数（正数为加分，负数为减分）：</label>
+                <input type="number" id="modalScoreInput" value="1">
+            </div>
             <div class="input-group-modal">
                 <label>选择原因标签：</label>
                 <div class="reason-tags" id="modalReasonTags">
@@ -2196,7 +2458,7 @@
         <div class="modal-content">
             <span class="close-btn" id="closeDataManage">&times;</span>
             <h2 class="modal-title">
-                <i class="fas fa-database"></i> 数据管理 💾
+                <i class="fas fa-database"></i> 数据管理
             </h2>
             <div class="data-manage-section">
                 <h3 class="data-section-title"><i class="fas fa-info-circle"></i> 说明</h3>
@@ -2239,7 +2501,6 @@
         // 初始化班级和学生数据
         let classes = {};
         let currentClass = "三年(4)班";
-        let stepValue = 1; // 加减分步值
         let currentEditIndex = -1; // 当前编辑的学生索引
         let randomPickInterval = null;
         let randomPickHistory = [];
@@ -2269,14 +2530,12 @@
         const rankingModal = document.getElementById('rankingModal');
         const addScoreModal = document.getElementById('addScoreModal');
         const studentManagerModal = document.getElementById('studentManagerModal');
-        const changeStepModal = document.getElementById('changeStepModal');
         const editStudentModal = document.getElementById('editStudentModal');
         const classManagerModal = document.getElementById('classManagerModal');
         const randomPickModal = document.getElementById('randomPickModal');
         const fileInput = document.getElementById('fileInput');
         const notification = document.getElementById('notification');
         const classTitleBtn = document.getElementById('classTitleBtn');
-        const currentStepSpan = document.getElementById('currentStep');
         const passwordModal = document.getElementById('passwordModal');
         const appContainer = document.getElementById('appContainer');
         const shopModal = document.getElementById('shopModal');
@@ -2394,19 +2653,13 @@
                 currentClass = savedCurrentClass;
             }
             
-            // 加载步值
-            const savedStepValue = localStorage.getItem('stepValue');
-            if (savedStepValue) {
-                stepValue = parseInt(savedStepValue) || 1;
-            }
-            
             // 加载视图模式
             const savedViewMode = localStorage.getItem('viewMode');
             if (savedViewMode) {
                 viewMode = savedViewMode;
                 viewModeSelect.value = viewMode;
             }
-            
+
             // 加载原因标签
             const savedReasonTags = localStorage.getItem('reasonTags');
             if (savedReasonTags) {
@@ -2414,20 +2667,18 @@
             } else {
                 reasonTags = ["回答问题", "作业优秀", "课堂表现", "迟到", "未交作业"];
             }
-            
+
             updateClassTitle();
-            updateStepValue();
             updateViewMode();
             saveData();
         }
-        
+
         // 保存数据到localStorage
         function saveData() {
             localStorage.setItem('classPointsSystem', JSON.stringify(classes));
             localStorage.setItem('classProducts', JSON.stringify(products));
             localStorage.setItem('redeemHistory', JSON.stringify(redeemHistory));
             localStorage.setItem('currentClass', currentClass);
-            localStorage.setItem('stepValue', stepValue);
             localStorage.setItem('viewMode', viewMode);
             localStorage.setItem('reasonTags', JSON.stringify(reasonTags));
             // 同步保存到已绑定的 JSON 文件（防抖）
@@ -2445,13 +2696,12 @@
         // 收集所有需要持久化的数据
         function getAllDataObject() {
             return {
-                version: 1,
+                version: 2,
                 exportTime: new Date().toISOString(),
                 classes: classes,
                 products: products,
                 redeemHistory: redeemHistory,
                 currentClass: currentClass,
-                stepValue: stepValue,
                 viewMode: viewMode,
                 reasonTags: reasonTags,
                 systemPassword: localStorage.getItem('systemPassword') || '123456'
@@ -2465,7 +2715,6 @@
             if (data.products) products = data.products;
             if (data.redeemHistory) redeemHistory = data.redeemHistory;
             if (data.currentClass) currentClass = data.currentClass;
-            if (typeof data.stepValue === 'number') stepValue = data.stepValue;
             if (data.viewMode) viewMode = data.viewMode;
             if (data.reasonTags) reasonTags = data.reasonTags;
             if (data.systemPassword) localStorage.setItem('systemPassword', data.systemPassword);
@@ -2474,7 +2723,6 @@
             localStorage.setItem('classProducts', JSON.stringify(products));
             localStorage.setItem('redeemHistory', JSON.stringify(redeemHistory));
             localStorage.setItem('currentClass', currentClass);
-            localStorage.setItem('stepValue', stepValue);
             localStorage.setItem('viewMode', viewMode);
             localStorage.setItem('reasonTags', JSON.stringify(reasonTags));
         }
@@ -2511,7 +2759,6 @@
                     if (autoSaveTimer) { clearTimeout(autoSaveTimer); autoSaveTimer = null; }
                     applyDataObject(data);
                     updateClassTitle();
-                    updateStepValue();
                     if (viewModeSelect) viewModeSelect.value = viewMode;
                     updateViewMode();
                     showNotification('数据已从 JSON 文件恢复');
@@ -2662,7 +2909,6 @@
                 const data = JSON.parse(text);
                 applyDataObject(data);
                 updateClassTitle();
-                updateStepValue();
                 if (viewModeSelect) viewModeSelect.value = viewMode;
                 updateViewMode();
                 showNotification('已从文件载入数据');
@@ -2717,7 +2963,7 @@
             dataManageModal.style.display = 'flex';
             const hintEl = document.getElementById('autoSaveHint');
             if (hintEl) {
-                hintEl.innerHTML = '<strong style="color:#e67e22;">⚡ 首次使用建议：点击上方「绑定数据文件」授权一次，即可默认同时保存到本地存储与 JSON 文件，避免清除数据或切换浏览器后丢失。</strong>';
+                hintEl.innerHTML = '<strong>首次使用建议：点击上方「绑定数据文件」授权一次，即可默认同时保存到本地存储与 JSON 文件，避免清除数据或切换浏览器后丢失。</strong>';
             }
             const dismissBtn = document.getElementById('dismissGuideBtn');
             if (dismissBtn) dismissBtn.style.display = '';
@@ -2762,15 +3008,7 @@
 
         // 更新班级标题
         function updateClassTitle() {
-            classTitleBtn.innerHTML = `
-                <span>${currentClass}积分系统</span>
-                <span class="emoji">📚✨</span>
-            `;
-        }
-        
-        // 更新步值显示
-        function updateStepValue() {
-            currentStepSpan.textContent = stepValue;
+            classTitleBtn.innerHTML = `<span>${currentClass}</span>`;
         }
         
         // 更新视图模式
@@ -2802,99 +3040,121 @@
             }
         }
         
-        // 渲染学生卡片
+        // 渲染学生卡片（紧凑单行：序号 / 姓名 / − / 积分 / + / ⋯）
         function renderStudents() {
             studentGrid.innerHTML = '';
-            
+
             const classData = classes[currentClass];
             if (!classData || !classData.students || classData.students.length === 0) {
                 studentGrid.innerHTML = '<div class="empty-state"><i class="fas fa-user-graduate"></i> 暂无学生数据，请添加学生或导入数据</div>';
                 return;
             }
-            
+
             const students = classData.students;
-            
+
             students.forEach((student, index) => {
-                const rowIndex = Math.floor(index / 5) % 5;
                 const card = document.createElement('div');
-                card.className = `student-card row-${rowIndex}`;
+                card.className = 'student-card';
                 card.innerHTML = `
-                    <div class="edit-student" data-index="${index}">
-                        <i class="fas fa-edit"></i>
-                    </div>
-                    <div class="delete-student" data-index="${index}">
-                        <i class="fas fa-times"></i>
-                    </div>
-                    <div class="cart-icon" data-index="${index}">
-                        <i class="fas fa-shopping-cart"></i>
-                    </div>
-                    <div class="student-name" data-index="${index}">${student.name}</div>
-                    <div class="score-container">
-                        <button class="score-btn minus-btn" data-index="${index}" data-type="minus">-</button>
-                        <div class="student-score" id="score-${index}" data-index="${index}">${student.score}</div>
-                        <button class="score-btn plus-btn" data-index="${index}" data-type="plus">+</button>
-                    </div>
-                    <button class="history-btn" data-index="${index}">
-                        <i class="fas fa-history"></i> 操作记录
-                    </button>
+                    <span class="student-index">${index + 1}</span>
+                    <span class="student-name" data-index="${index}" title="${student.name}">${student.name}</span>
+                    <button class="score-btn minus-btn" data-index="${index}" data-type="minus">&minus;</button>
+                    <span class="student-score" id="score-${index}" data-index="${index}">${student.score}</span>
+                    <button class="score-btn plus-btn" data-index="${index}" data-type="plus">&plus;</button>
+                    <button class="more-btn" data-index="${index}" title="更多">&#8943;</button>
                 `;
                 studentGrid.appendChild(card);
             });
-            
-            // 添加事件监听
+
+            // 加减号：点击弹出加减分弹窗
             document.querySelectorAll('.minus-btn').forEach(btn => {
-                btn.addEventListener('click', (e) => {
+                btn.addEventListener('click', () => {
                     const index = parseInt(btn.dataset.index);
                     currentAdjustType = 'individual';
                     currentAdjustIndex = index;
                     currentAdjustGroup = '';
-                    currentScoreChange = -stepValue;
+                    currentScoreChange = -1;
                     showReasonModal();
                 });
             });
-            
+
             document.querySelectorAll('.plus-btn').forEach(btn => {
-                btn.addEventListener('click', (e) => {
+                btn.addEventListener('click', () => {
                     const index = parseInt(btn.dataset.index);
                     currentAdjustType = 'individual';
                     currentAdjustIndex = index;
                     currentAdjustGroup = '';
-                    currentScoreChange = stepValue;
+                    currentScoreChange = 1;
                     showReasonModal();
                 });
             });
-            
-            document.querySelectorAll('.edit-student').forEach(btn => {
-                btn.addEventListener('click', () => editStudent(parseInt(btn.dataset.index)));
-            });
-            
-            document.querySelectorAll('.delete-student').forEach(btn => {
-                btn.addEventListener('click', () => deleteStudent(parseInt(btn.dataset.index)));
-            });
-            
+
+            // 姓名点击：打开学生详情
             document.querySelectorAll('.student-name').forEach(el => {
-                el.addEventListener('click', (e) => editStudent(parseInt(e.target.dataset.index)));
+                el.addEventListener('click', () => showStudentDetail(parseInt(el.dataset.index)));
             });
-            
-            document.querySelectorAll('.student-score').forEach(el => {
-                el.addEventListener('click', (e) => editStudent(parseInt(e.target.dataset.index)));
-            });
-            
-            document.querySelectorAll('.cart-icon').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    const index = parseInt(e.currentTarget.dataset.index);
-                    openCart(index);
-                });
-            });
-            
-            document.querySelectorAll('.history-btn').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    const index = parseInt(e.currentTarget.dataset.index);
-                    showStudentHistory(index);
-                });
+
+            // ⋯ 更多按钮：打开学生详情
+            document.querySelectorAll('.more-btn').forEach(btn => {
+                btn.addEventListener('click', () => showStudentDetail(parseInt(btn.dataset.index)));
             });
         }
-        
+
+        // 显示学生详情弹窗（基本信息 + 小组 + 改分记录）
+        function showStudentDetail(index) {
+            const classData = classes[currentClass];
+            if (!classData || !classData.students || !classData.students[index]) return;
+            const student = classData.students[index];
+
+            document.getElementById('detailStudentName').textContent = student.name;
+            document.getElementById('detailName').textContent = student.name;
+            document.getElementById('detailIndex').textContent = index + 1;
+            document.getElementById('detailScore').textContent = student.score;
+
+            const groupNames = Object.keys(classData.groups || {});
+            let belongGroup = '未分组';
+            let isLeader = false;
+            groupNames.forEach(gName => {
+                const g = classData.groups[gName];
+                if (g && g.members && g.members.includes(index)) {
+                    belongGroup = gName;
+                    if (g.leader === index) isLeader = true;
+                }
+            });
+            document.getElementById('detailGroup').textContent = belongGroup;
+            document.getElementById('detailIsLeader').textContent = isLeader ? '是' : '否';
+
+            const listEl = document.getElementById('detailHistoryList');
+            const history = student.history || [];
+            if (history.length === 0) {
+                listEl.innerHTML = '<div class="detail-history-empty">暂无改分记录</div>';
+            } else {
+                listEl.innerHTML = history.map((record, idx) => {
+                    const date = new Date(record.timestamp);
+                    const dateStr = `${date.getFullYear()}-${(date.getMonth()+1).toString().padStart(2,'0')}-${date.getDate().toString().padStart(2,'0')} ${date.getHours().toString().padStart(2,'0')}:${date.getMinutes().toString().padStart(2,'0')}`;
+                    const actionClass = (record.type === '减分' || record.type === '清零') ? 'minus' : '';
+                    return `
+                        <div class="history-item">
+                            <div class="history-details">
+                                <div class="history-action ${actionClass}">${record.type || ''} ${record.amount}分</div>
+                                ${record.reason ? `<div class="history-reason">${record.reason}</div>` : ''}
+                                <div class="history-time">${dateStr}</div>
+                            </div>
+                            <button class="undo-btn" data-index="${index}" data-idx="${idx}">撤销</button>
+                        </div>
+                    `;
+                }).join('');
+                listEl.querySelectorAll('.undo-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        undoStudentHistory(parseInt(btn.dataset.index), parseInt(btn.dataset.idx));
+                        showStudentDetail(parseInt(btn.dataset.index));
+                    });
+                });
+            }
+
+            document.getElementById('studentDetailModal').style.display = 'flex';
+        }
+
         // 渲染小组卡片
         function renderGroups() {
             groupsContainer.innerHTML = '';
@@ -2969,14 +3229,14 @@
             document.querySelectorAll('.group-card .minus-btn').forEach(btn => {
                 btn.addEventListener('click', () => {
                     const groupName = btn.dataset.group;
-                    adjustGroupScore(groupName, -stepValue);
+                    adjustGroupScore(groupName, -1);
                 });
             });
-            
+
             document.querySelectorAll('.group-card .plus-btn').forEach(btn => {
                 btn.addEventListener('click', () => {
                     const groupName = btn.dataset.group;
-                    adjustGroupScore(groupName, stepValue);
+                    adjustGroupScore(groupName, 1);
                 });
             });
             
@@ -2996,11 +3256,11 @@
                     currentAdjustType = 'individual';
                     currentAdjustIndex = findStudentIndex(studentName);
                     currentAdjustGroup = groupName;
-                    currentScoreChange = -stepValue;
+                    currentScoreChange = -1;
                     showReasonModal();
                 });
             });
-            
+
             document.querySelectorAll('.group-student-item .plus-btn').forEach(btn => {
                 btn.addEventListener('click', () => {
                     const studentName = btn.dataset.name;
@@ -3008,7 +3268,7 @@
                     currentAdjustType = 'individual';
                     currentAdjustIndex = findStudentIndex(studentName);
                     currentAdjustGroup = groupName;
-                    currentScoreChange = stepValue;
+                    currentScoreChange = 1;
                     showReasonModal();
                 });
             });
@@ -3231,7 +3491,10 @@
         // 显示原因模态框
         function showReasonModal() {
             renderReasonTags();
+            document.getElementById('modalScoreInput').value = currentScoreChange;
+            document.getElementById('modalNewReasonInput').value = '';
             reasonModal.style.display = 'flex';
+            setTimeout(() => document.getElementById('modalScoreInput').focus(), 50);
         }
         
         // 显示小组操作模态框
@@ -3772,9 +4035,9 @@
         function addScoreToAllGroups() {
             const classData = classes[currentClass];
             const groups = classData.groups || [];
-            
+
             groups.forEach(groupName => {
-                adjustGroupScore(groupName, stepValue);
+                adjustGroupScore(groupName, 1);
             });
         }
         
@@ -3997,23 +4260,6 @@
             } else {
                 showNotification('未添加任何学生', true);
             }
-        }
-        
-        // 修改步值
-        function changeStepValue() {
-            const stepInput = document.getElementById('stepValueInput');
-            const newStep = parseInt(stepInput.value) || 1;
-            
-            if (newStep <= 0) {
-                showNotification('步值必须大于0', true);
-                return;
-            }
-            
-            stepValue = newStep;
-            saveData();
-            updateStepValue();
-            changeStepModal.style.display = 'none';
-            showNotification(`加减分步值已修改为: ${stepValue}`);
         }
         
         // 创建新班级
@@ -5148,13 +5394,19 @@
             
             document.getElementById('confirmReason').addEventListener('click', () => {
                 const reason = document.getElementById('modalNewReasonInput').value.trim();
+                const scoreVal = parseInt(document.getElementById('modalScoreInput').value);
+                if (isNaN(scoreVal) || scoreVal === 0) {
+                    showNotification('请输入有效的分数（不能为 0）', true);
+                    return;
+                }
                 if (reason) {
                     // 保存新标签
                     if (!reasonTags.includes(reason)) {
                         reasonTags.push(reason);
                         saveData();
                     }
-                    
+
+                    currentScoreChange = scoreVal;
                     handleScoreAdjustment(currentScoreChange, reason);
                     reasonModal.style.display = 'none';
                 } else {
@@ -5226,7 +5478,7 @@
             
             // 全班加分事件
             document.getElementById('addAllBtn').addEventListener('click', () => {
-                document.getElementById('scoreInput').value = stepValue;
+                document.getElementById('scoreInput').value = 1;
                 addScoreModal.style.display = 'flex';
                 renderReasonTags();
             });
@@ -5256,33 +5508,26 @@
                 addScoreModal.style.display = 'none';
             });
             
-            document.getElementById('changeStepBtn').addEventListener('click', () => {
-                document.getElementById('stepValueInput').value = stepValue;
-                changeStepModal.style.display = 'flex';
-            });
-            
-            document.getElementById('confirmChangeStep').addEventListener('click', changeStepValue);
-            document.getElementById('cancelChangeStep').addEventListener('click', () => {
-                changeStepModal.style.display = 'none';
-            });
-            
             document.getElementById('confirmEditStudent').addEventListener('click', saveStudentEdit);
             document.getElementById('cancelEditStudent').addEventListener('click', () => {
                 editStudentModal.style.display = 'none';
             });
-            
+
             document.getElementById('closeRanking').addEventListener('click', () => {
                 rankingModal.style.display = 'none';
             });
-            
+
             document.getElementById('closeAddScore').addEventListener('click', () => {
                 addScoreModal.style.display = 'none';
             });
-            
-            document.getElementById('closeChangeStep').addEventListener('click', () => {
-                changeStepModal.style.display = 'none';
+
+            document.getElementById('closeStudentDetail').addEventListener('click', () => {
+                document.getElementById('studentDetailModal').style.display = 'none';
             });
-            
+            document.getElementById('closeDetailBtn').addEventListener('click', () => {
+                document.getElementById('studentDetailModal').style.display = 'none';
+            });
+
             document.getElementById('closeEditStudent').addEventListener('click', () => {
                 editStudentModal.style.display = 'none';
             });
