@@ -2683,7 +2683,7 @@
     <script>
         // 初始化班级和学生数据
         let classes = {};
-        let currentClass = "三年(4)班";
+        let currentClass = "DefaultClass";
         let currentEditIndex = -1; // 当前编辑的学生索引
         let randomPickInterval = null;
         let randomPickHistory = [];
@@ -2745,39 +2745,12 @@
             } else {
                 // 默认班级和学生
                 classes = {
-                    "三年(4)班": {
+                    "DefaultClass": {
                         students: [
-                            { name: "小明", score: 85, group: "第一组", history: [], isLeader: true },
-                            { name: "小红", score: 92, group: "第一组", history: [], isLeader: false },
-                            { name: "小刚", score: 78, group: "第二组", history: [], isLeader: true },
-                            { name: "小丽", score: 95, group: "第二组", history: [], isLeader: false },
-                            { name: "小华", score: 88, group: "第三组", history: [], isLeader: true },
-                            { name: "小强", score: 76, group: "第三组", history: [], isLeader: false },
-                            { name: "小美", score: 90, group: "第四组", history: [], isLeader: true },
-                            { name: "小林", score: 82, group: "第四组", history: [], isLeader: false },
-                            { name: "小芳", score: 89, group: "第一组", history: [], isLeader: false },
-                            { name: "小杰", score: 93, group: "第二组", history: [], isLeader: false }
+                            { name: "default", score: 0, group: "", history: [], isLeader: false }
                         ],
-                        groups: ["第一组", "第二组", "第三组", "第四组"],
-                        groupScores: {
-                            "第一组": 0,
-                            "第二组": 0,
-                            "第三组": 0,
-                            "第四组": 0
-                        }
-                    },
-                    "四年(2)班": {
-                        students: [
-                            { name: "张伟", score: 80, group: "A组", history: [], isLeader: true },
-                            { name: "李娜", score: 87, group: "A组", history: [], isLeader: false },
-                            { name: "王芳", score: 91, group: "B组", history: [], isLeader: true },
-                            { name: "刘洋", score: 84, group: "B组", history: [], isLeader: false }
-                        ],
-                        groups: ["A组", "B组"],
-                        groupScores: {
-                            "A组": 0,
-                            "B组": 0
-                        }
+                        groups: [],
+                        groupScores: {}
                     }
                 };
             }
@@ -4090,18 +4063,15 @@
                     } else {
                         // 如果没有班级了，创建默认班级
                         classes = {
-                            "默认班级": {
-                                students: [],
-                                groups: ["第一组", "第二组", "第三组", "第四组"],
-                                groupScores: {
-                                    "第一组": 0,
-                                    "第二组": 0,
-                                    "第三组": 0,
-                                    "第四组": 0
-                                }
+                            "DefaultClass": {
+                                students: [
+                                    { name: "default", score: 0, group: "", history: [], isLeader: false }
+                                ],
+                                groups: [],
+                                groupScores: {}
                             }
                         };
-                        currentClass = "默认班级";
+                        currentClass = "DefaultClass";
                         updateClassTitle();
                         updateViewMode();
                     }
