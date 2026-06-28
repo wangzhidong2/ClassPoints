@@ -1445,6 +1445,124 @@
             margin-top: 16px;
         }
 
+        .cp-combobox {
+            position: relative;
+            display: inline-block;
+        }
+
+        .cp-combobox-input {
+            padding: 6px 32px 6px 12px;
+            border-radius: var(--cp-radius-btn);
+            border: 1px solid var(--cp-border);
+            font-size: 0.92rem;
+            background: #fff;
+            color: var(--cp-text);
+            cursor: pointer;
+            outline: none;
+            min-width: 120px;
+            transition: border-color 0.15s, background 0.15s;
+            user-select: none;
+            line-height: 1.4;
+        }
+
+        .cp-combobox-input:hover {
+            border-color: var(--cp-border-strong);
+            background: var(--cp-surface-2);
+        }
+
+        .cp-combobox.open .cp-combobox-input {
+            border-color: var(--cp-primary);
+        }
+
+        .cp-combobox-arrow {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--cp-text-2);
+            font-size: 0.75rem;
+            pointer-events: none;
+            transition: transform 0.2s;
+        }
+
+        .cp-combobox.open .cp-combobox-arrow {
+            transform: translateY(-50%) rotate(180deg);
+        }
+
+        .cp-combobox-dropdown {
+            position: absolute;
+            top: calc(100% + 4px);
+            left: 0;
+            min-width: 100%;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--cp-border);
+            border-radius: var(--cp-radius);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12), 0 2px 6px rgba(0, 0, 0, 0.06);
+            z-index: 1000;
+            padding: 4px 0;
+            display: none;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .cp-combobox.open .cp-combobox-dropdown {
+            display: block;
+            animation: cpDropdownIn 0.15s ease-out;
+        }
+
+        @keyframes cpDropdownIn {
+            from {
+                opacity: 0;
+                transform: translateY(-4px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .cp-combobox-item {
+            padding: 8px 36px 8px 16px;
+            font-size: 0.92rem;
+            color: var(--cp-text);
+            cursor: pointer;
+            position: relative;
+            white-space: nowrap;
+            transition: background 0.1s;
+            border-left: 3px solid transparent;
+            margin: 0 4px;
+            border-radius: 0 var(--cp-radius-sm) var(--cp-radius-sm) 0;
+        }
+
+        .cp-combobox-item:hover {
+            background: var(--cp-surface-2);
+        }
+
+        .cp-combobox-item.selected {
+            background: var(--cp-surface-2);
+            font-weight: 500;
+            border-left-color: var(--cp-primary);
+            border-radius: 0 var(--cp-radius-sm) var(--cp-radius-sm) 0;
+        }
+
+        .input-group-modal .cp-combobox {
+            width: 100%;
+        }
+        .input-group-modal .cp-combobox-input {
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .input-group-modal .cp-combobox-dropdown {
+            width: 100%;
+        }
+
+        .cp-combobox.ranking-type-select {
+            display: block;
+            margin: 0 auto 16px;
+        }
+
         .view-mode-select {
             padding: 6px 12px;
             border-radius: var(--cp-radius-btn);
@@ -3831,6 +3949,7 @@
                 }
                 groupSelect.appendChild(option);
             });
+            if (groupSelect.cpRefresh) groupSelect.cpRefresh();
             
             editStudentModal.style.display = 'flex';
         }
@@ -4481,6 +4600,7 @@
                 }
                 classSelect.appendChild(option);
             });
+            if (classSelect.cpRefresh) classSelect.cpRefresh();
             
             // 填充小组选择框
             updateGroupSelect();
@@ -4513,6 +4633,7 @@
                     groupSelect.appendChild(option);
                 });
             }
+            if (groupSelect.cpRefresh) groupSelect.cpRefresh();
         }
         
         // 更新学生列表
@@ -4581,7 +4702,85 @@
                 studentList.appendChild(listItem);
             });
         }
-        
+
+        // WinUI 3 风格 ComboBox 组件
+        // 用法：createComboBox(selectElement) — 替换原生 <select> 为自定义 ComboBox
+        // 对外保留原 <select> 的 change 事件不变
+        function createComboBox(selectEl) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'cp-combobox';
+            // 继承原 select 的类名，便于保留外部自定义样式
+            if (selectEl.className) {
+                selectEl.classList.forEach(cls => wrapper.classList.add(cls));
+            }
+
+            const input = document.createElement('div');
+            input.className = 'cp-combobox-input';
+            input.textContent = selectEl.options[selectEl.selectedIndex]?.text || '';
+
+            const arrow = document.createElement('span');
+            arrow.className = 'cp-combobox-arrow';
+            arrow.innerHTML = '&#9662;';
+
+            const dropdown = document.createElement('div');
+            dropdown.className = 'cp-combobox-dropdown';
+
+            function renderItems() {
+                dropdown.innerHTML = '';
+                Array.from(selectEl.options).forEach((opt, idx) => {
+                    const item = document.createElement('div');
+                    item.className = 'cp-combobox-item';
+                    if (idx === selectEl.selectedIndex) item.classList.add('selected');
+                    item.textContent = opt.text;
+                    item.dataset.value = opt.value;
+                    item.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        selectEl.value = opt.value;
+                        input.textContent = opt.text;
+                        dropdown.querySelectorAll('.cp-combobox-item').forEach(i => i.classList.remove('selected'));
+                        item.classList.add('selected');
+                        wrapper.classList.remove('open');
+                        selectEl.dispatchEvent(new Event('change'));
+                    });
+                    dropdown.appendChild(item);
+                });
+            }
+
+            renderItems();
+
+            input.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const isOpen = wrapper.classList.contains('open');
+                document.querySelectorAll('.cp-combobox.open').forEach(cb => cb.classList.remove('open'));
+                if (!isOpen) {
+                    wrapper.classList.add('open');
+                    renderItems();
+                }
+            });
+
+            selectEl.cpRefresh = () => {
+                input.textContent = selectEl.options[selectEl.selectedIndex]?.text || '';
+                renderItems();
+            };
+
+            wrapper.appendChild(input);
+            wrapper.appendChild(arrow);
+            wrapper.appendChild(dropdown);
+
+            selectEl.style.display = 'none';
+            selectEl.parentNode.insertBefore(wrapper, selectEl);
+            wrapper.appendChild(selectEl);
+
+            return wrapper;
+        }
+
+        // 点击外部点击关闭所有 ComboBox
+        document.addEventListener('click', () => {
+            document.querySelectorAll('.cp-combobox.open').forEach(cb => {
+                cb.classList.remove('open');
+            });
+        });
+
         // 显示通知
         function showNotification(message, isError = false) {
             notification.innerHTML = `<i class="fas ${isError ? 'fa-exclamation-circle' : 'fa-check-circle'}"></i> ${message}`;
@@ -5000,6 +5199,11 @@
                 option.textContent = className;
                 classFilter.appendChild(option);
             });
+
+            // 刷新 ComboBox 显示
+            if (monthFilter.cpRefresh) monthFilter.cpRefresh();
+            if (yearFilter.cpRefresh) yearFilter.cpRefresh();
+            if (classFilter.cpRefresh) classFilter.cpRefresh();
             
             // 显示所有记录
             redeemHistory.forEach(record => {
@@ -5320,6 +5524,11 @@
 
         // 初始化
         document.addEventListener('DOMContentLoaded', () => {
+            // 初始化 WinUI 3 风格 ComboBox（替换所有原生 select）
+            document.querySelectorAll('select').forEach(sel => {
+                createComboBox(sel);
+            });
+
             // 显示密码模态框
             passwordModal.style.display = 'flex';
             
