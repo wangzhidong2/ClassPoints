@@ -1480,7 +1480,7 @@
             top: 50%;
             transform: translateY(-50%);
             color: var(--cp-text-2);
-            font-size: 0.75rem;
+            font-size: 0.9rem;
             pointer-events: none;
             transition: transform 0.2s;
         }
@@ -1558,7 +1558,7 @@
             width: 100%;
         }
 
-        .cp-combobox.ranking-type-select {
+        #rankingModal .cp-combobox {
             display: block;
             margin: 0 auto 16px;
         }
@@ -3372,11 +3372,10 @@
             
             const groups = classData.groups;
             const students = classData.students || [];
-            const groupScores = classData.groupScores || {};
             
             groups.forEach((groupName, groupIndex) => {
                 const groupStudents = students.filter(s => s.group === groupName);
-                const groupScore = groupScores[groupName] || 0;
+                const groupScore = groupStudents.reduce((sum, s) => sum + (s.score || 0), 0);
                 
                 const groupCard = document.createElement('div');
                 groupCard.className = 'group-card';
@@ -3636,13 +3635,17 @@
         // 编辑小组积分
         function editGroupScore(groupName) {
             const classData = classes[currentClass];
-            const currentScore = classData.groupScores[groupName] || 0;
+            const groupStudents = (classData.students || []).filter(s => s.group === groupName);
+            if (groupStudents.length === 0) return;
+            
+            const currentTotal = groupStudents.reduce((sum, s) => sum + (s.score || 0), 0);
             
             const groupScoreElement = document.querySelector(`.group-score[data-group="${groupName}"]`);
             const input = document.createElement('input');
             input.type = 'number';
             input.className = 'group-score-input';
-            input.value = currentScore;
+            input.value = currentTotal;
+            input.title = '设置小组总积分（将平均分配到每位成员）';
             
             groupScoreElement.innerHTML = '';
             groupScoreElement.appendChild(input);
@@ -3650,8 +3653,27 @@
             input.select();
             
             const saveScore = () => {
-                const newScore = parseInt(input.value) || 0;
-                classData.groupScores[groupName] = newScore;
+                const newTotal = parseInt(input.value) || 0;
+                const perStudent = Math.floor(newTotal / groupStudents.length);
+                const remainder = newTotal - perStudent * groupStudents.length;
+                
+                groupStudents.forEach((s, i) => {
+                    const oldScore = s.score || 0;
+                    const newScore = perStudent + (i < remainder ? 1 : 0);
+                    const diff = newScore - oldScore;
+                    s.score = newScore;
+                    
+                    if (diff !== 0) {
+                        if (!s.history) s.history = [];
+                        s.history.unshift({
+                            type: diff > 0 ? '加分' : '减分',
+                            amount: Math.abs(diff),
+                            reason: '小组积分调整',
+                            timestamp: new Date().toISOString()
+                        });
+                    }
+                });
+                
                 saveData();
                 renderGroups();
             };
@@ -3667,19 +3689,28 @@
         // 调整小组积分（直接加减，无需原因）
         function adjustGroupScore(groupName, change) {
             const classData = classes[currentClass];
-            if (!classData.groupScores) {
-                classData.groupScores = {};
-            }
+            const students = classData.students || [];
             
-            if (!classData.groupScores[groupName]) {
-                classData.groupScores[groupName] = 0;
-            }
+            let count = 0;
+            students.forEach(student => {
+                if (student.group === groupName) {
+                    student.score += change;
+                    count++;
+                    
+                    if (!student.history) student.history = [];
+                    student.history.unshift({
+                        type: change > 0 ? '加分' : '减分',
+                        amount: Math.abs(change),
+                        reason: change > 0 ? '小组加分' : '小组减分',
+                        timestamp: new Date().toISOString()
+                    });
+                }
+            });
             
-            classData.groupScores[groupName] += change;
             saveData();
             renderGroups();
             
-            showNotification(`已${change > 0 ? '增加' : '减少'} ${groupName} ${Math.abs(change)} 分`);
+            showNotification(`已${change > 0 ? '增加' : '减少'} ${groupName} ${count} 名学生各 ${Math.abs(change)} 分`);
         }
         
         // 查找学生索引
@@ -4249,12 +4280,24 @@
         
         // 全部小组清零
         function resetAllGroups() {
-            if (confirm('确定要将全部小组积分清零吗？这不会影响学生个人积分。')) {
+            if (confirm('确定要将全部小组积分清零吗？这会将所有有小组的学生个人积分清零。')) {
                 const classData = classes[currentClass];
-                if (!classData.groupScores) return;
+                const students = classData.students || [];
                 
-                Object.keys(classData.groupScores).forEach(groupName => {
-                    classData.groupScores[groupName] = 0;
+                students.forEach(student => {
+                    if (student.group && classData.groups && classData.groups.includes(student.group)) {
+                        const oldScore = student.score || 0;
+                        if (oldScore !== 0) {
+                            student.score = 0;
+                            if (!student.history) student.history = [];
+                            student.history.unshift({
+                                type: '清零',
+                                amount: oldScore,
+                                reason: '全部小组积分清零',
+                                timestamp: new Date().toISOString()
+                            });
+                        }
+                    }
                 });
                 
                 saveData();
@@ -4303,7 +4346,7 @@
                 // 小组排行榜
                 const classData = classes[currentClass];
                 const groups = classData.groups || [];
-                const groupScores = classData.groupScores || {};
+                const students = classData.students || [];
                 
                 if (groups.length === 0) {
                     rankingList.innerHTML = '<div class="empty-state">暂无小组数据</div>';
@@ -4311,11 +4354,15 @@
                     return;
                 }
                 
-                // 转换为数组并排序
-                const sortedGroups = groups.map(group => ({
-                    name: group,
-                    score: groupScores[group] || 0
-                })).sort((a, b) => b.score - a.score);
+                // 转换为数组并排序（小组积分 = 成员积分之和）
+                const sortedGroups = groups.map(group => {
+                    const groupStudents = students.filter(s => s.group === group);
+                    const groupScore = groupStudents.reduce((sum, s) => sum + (s.score || 0), 0);
+                    return {
+                        name: group,
+                        score: groupScore
+                    };
+                }).sort((a, b) => b.score - a.score);
                 
                 sortedGroups.forEach((group, index) => {
                     const li = document.createElement('li');
@@ -4709,10 +4756,6 @@
         function createComboBox(selectEl) {
             const wrapper = document.createElement('div');
             wrapper.className = 'cp-combobox';
-            // 继承原 select 的类名，便于保留外部自定义样式
-            if (selectEl.className) {
-                selectEl.classList.forEach(cls => wrapper.classList.add(cls));
-            }
 
             const input = document.createElement('div');
             input.className = 'cp-combobox-input';
