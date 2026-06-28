@@ -1531,9 +1531,8 @@
             position: relative;
             white-space: nowrap;
             transition: background 0.1s;
-            border-left: 3px solid transparent;
             margin: 0 4px;
-            border-radius: 0 var(--cp-radius-sm) var(--cp-radius-sm) 0;
+            border-radius: var(--cp-radius-sm);
         }
 
         .cp-combobox-item:hover {
@@ -1543,8 +1542,19 @@
         .cp-combobox-item.selected {
             background: var(--cp-surface-2);
             font-weight: 500;
-            border-left-color: var(--cp-primary);
-            border-radius: 0 var(--cp-radius-sm) var(--cp-radius-sm) 0;
+            border-radius: var(--cp-radius-sm);
+        }
+
+        .cp-combobox-item.selected::before {
+            content: '';
+            position: absolute;
+            left: -4px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 3px;
+            height: 16px;
+            background: var(--cp-primary);
+            border-radius: 0 2px 2px 0;
         }
 
         .input-group-modal .cp-combobox {
