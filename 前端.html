@@ -522,6 +522,44 @@
             border-color: var(--cp-border-strong);
         }
 
+        .delete-btn {
+            background: #fff;
+            color: var(--cp-danger);
+            border: 1px solid var(--cp-danger);
+            padding: 8px 20px;
+            border-radius: var(--cp-radius-btn);
+            font-size: 0.95rem;
+            font-weight: 400;
+            cursor: pointer;
+            transition: background 0.15s, border-color 0.15s, color 0.15s;
+            min-width: 96px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .delete-btn:hover {
+            background: var(--cp-danger) !important;
+            color: #fff !important;
+            border-color: var(--cp-danger) !important;
+        }
+
+        .confirm-delete-body {
+            padding: 8px 0 20px;
+            line-height: 1.6;
+            color: var(--cp-text);
+        }
+
+        .confirm-delete-body p {
+            margin: 0 0 8px;
+        }
+
+        .confirm-delete-warning {
+            font-size: 0.9rem;
+            color: var(--cp-text-2);
+        }
+
         .file-input-label {
             display: inline-flex;
             align-items: center;
@@ -2121,11 +2159,34 @@
                 </div>
             </div>
             <div class="action-btns-modal">
+                <button class="delete-btn" id="deleteDetailBtn">
+                    <i class="fas fa-trash-alt"></i> 删除学生
+                </button>
                 <button class="cancel-btn" id="closeDetailBtn">关闭</button>
             </div>
         </div>
     </div>
-    
+
+    <!-- 确认删除学生模态框 -->
+    <div class="modal" id="confirmDeleteModal">
+        <div class="modal-content" style="max-width: 420px;">
+            <span class="close-btn" id="closeConfirmDelete">&times;</span>
+            <h2 class="modal-title">
+                <i class="fas fa-exclamation-triangle" style="color: var(--cp-danger);"></i> 确认删除
+            </h2>
+            <div class="confirm-delete-body">
+                <p>确定要删除学生 <strong id="confirmDeleteName"></strong> 吗？</p>
+                <p class="confirm-delete-warning">该操作不可恢复，学生的所有积分记录将被永久删除。</p>
+            </div>
+            <div class="action-btns-modal">
+                <button class="delete-btn" id="confirmDeleteBtn">
+                    <i class="fas fa-trash-alt"></i> 确认删除
+                </button>
+                <button class="cancel-btn" id="cancelDeleteBtn">取消</button>
+            </div>
+        </div>
+    </div>
+
     <!-- 编辑学生信息模态框 -->
     <div class="modal" id="editStudentModal">
         <div class="modal-content">
@@ -3156,7 +3217,29 @@
                 });
             }
 
+            document.getElementById('deleteDetailBtn').dataset.index = index;
             document.getElementById('studentDetailModal').style.display = 'flex';
+        }
+
+        let pendingDeleteCallback = null;
+
+        function showConfirmDelete(name, callback) {
+            document.getElementById('confirmDeleteName').textContent = name;
+            pendingDeleteCallback = callback || null;
+            document.getElementById('confirmDeleteModal').style.display = 'flex';
+        }
+
+        function confirmDeleteAction() {
+            if (typeof pendingDeleteCallback === 'function') {
+                pendingDeleteCallback();
+            }
+            pendingDeleteCallback = null;
+            document.getElementById('confirmDeleteModal').style.display = 'none';
+        }
+
+        function cancelDeleteAction() {
+            pendingDeleteCallback = null;
+            document.getElementById('confirmDeleteModal').style.display = 'none';
         }
 
         // 渲染小组卡片
@@ -4477,17 +4560,13 @@
                 
                 const deleteBtn = listItem.querySelector('.student-list-delete');
                 deleteBtn.addEventListener('click', () => {
-                    // 找到该学生在全局列表中的索引
                     const globalIndex = classes[className].students.findIndex(s => s.name === student.name);
-                    if (globalIndex !== -1) {
+                    if (globalIndex === -1) return;
+                    showConfirmDelete(student.name, () => {
                         classes[className].students.splice(globalIndex, 1);
-                        
-                        // 更新组长状态
                         updateGroupLeaders();
-                        
                         saveData();
                         updateStudentList();
-                        
                         if (className === currentClass) {
                             if (viewMode === 'individual') {
                                 renderStudents();
@@ -4495,9 +4574,8 @@
                                 renderGroups();
                             }
                         }
-                        
                         showNotification(`已删除学生: ${student.name}`);
-                    }
+                    });
                 });
                 
                 studentList.appendChild(listItem);
@@ -5547,6 +5625,30 @@
             document.getElementById('closeDetailBtn').addEventListener('click', () => {
                 document.getElementById('studentDetailModal').style.display = 'none';
             });
+
+            document.getElementById('deleteDetailBtn').addEventListener('click', () => {
+                const idx = parseInt(document.getElementById('deleteDetailBtn').dataset.index);
+                if (isNaN(idx)) return;
+                const classData = classes[currentClass];
+                if (!classData || !classData.students || !classData.students[idx]) return;
+                const student = classData.students[idx];
+                showConfirmDelete(student.name, () => {
+                    classData.students.splice(idx, 1);
+                    updateGroupLeaders();
+                    saveData();
+                    if (viewMode === 'individual') {
+                        renderStudents();
+                    } else {
+                        renderGroups();
+                    }
+                    document.getElementById('studentDetailModal').style.display = 'none';
+                    showNotification(`已删除学生: ${student.name}`);
+                });
+            });
+
+            document.getElementById('closeConfirmDelete').addEventListener('click', cancelDeleteAction);
+            document.getElementById('cancelDeleteBtn').addEventListener('click', cancelDeleteAction);
+            document.getElementById('confirmDeleteBtn').addEventListener('click', confirmDeleteAction);
 
             document.getElementById('closeEditStudent').addEventListener('click', () => {
                 editStudentModal.style.display = 'none';
