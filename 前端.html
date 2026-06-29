@@ -837,6 +837,97 @@
             font-size: 0.88rem;
         }
 
+        /* 欢迎向导 */
+        .welcome-wizard {
+            display: none;
+        }
+
+        .welcome-step {
+            display: none;
+        }
+
+        .welcome-step.active {
+            display: block;
+        }
+
+        .welcome-logo {
+            text-align: center;
+            margin-bottom: 18px;
+        }
+
+        .welcome-logo i {
+            font-size: 3rem;
+            color: var(--cp-primary);
+        }
+
+        .welcome-title {
+            text-align: center;
+            font-size: 1.6rem;
+            font-weight: 600;
+            color: var(--cp-text);
+            margin-bottom: 12px;
+        }
+
+        .welcome-subtitle {
+            text-align: center;
+            color: var(--cp-text-2);
+            font-size: 0.96rem;
+            line-height: 1.6;
+            margin-bottom: 24px;
+        }
+
+        .welcome-features {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 24px 0;
+        }
+
+        .welcome-features li {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 0;
+            color: var(--cp-text-2);
+            font-size: 0.92rem;
+        }
+
+        .welcome-features li i {
+            color: var(--cp-primary);
+            width: 18px;
+            text-align: center;
+        }
+
+        .welcome-actions {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .welcome-actions .password-btn {
+            margin-top: 0;
+        }
+
+        .welcome-section {
+            margin-bottom: 16px;
+        }
+
+        .welcome-section h3 {
+            font-size: 0.98rem;
+            font-weight: 600;
+            color: var(--cp-text);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .welcome-status {
+            font-size: 0.9rem;
+            color: var(--cp-text-2);
+            margin-bottom: 12px;
+        }
+
         .random-picker-container {
             text-align: center;
             padding: 16px;
@@ -2646,6 +2737,54 @@
         </div>
     </div>
 
+    <!-- 欢迎向导模态框（首次使用引导） -->
+    <div class="modal welcome-wizard" id="welcomeWizardModal">
+        <div class="password-container">
+            <!-- 第一屏：欢迎 -->
+            <div class="welcome-step active" id="welcomeStep1">
+                <div class="welcome-logo">
+                    <i class="fas fa-graduation-cap"></i>
+                </div>
+                <h2 class="welcome-title">欢迎使用 ClassPoints</h2>
+                <p class="welcome-subtitle">课堂积分管理系统，让课堂互动更高效、更有趣。</p>
+                <ul class="welcome-features">
+                    <li><i class="fas fa-star"></i> 学生个人积分与小组积分管理</li>
+                    <li><i class="fas fa-shopping-cart"></i> 积分商城与兑换记录</li>
+                    <li><i class="fas fa-random"></i> 随机点名与抽选</li>
+                    <li><i class="fas fa-database"></i> 数据本地持久化保存</li>
+                </ul>
+                <div class="welcome-actions">
+                    <button class="password-btn cancel-btn" id="welcomeSkipBtn" style="background:#e0e0e0; color:#666;">跳过配置</button>
+                    <button class="password-btn" id="welcomeNextBtn">下一步</button>
+                </div>
+            </div>
+
+            <!-- 第二屏：数据管理配置 -->
+            <div class="welcome-step" id="welcomeStep2">
+                <div class="welcome-logo">
+                    <i class="fas fa-database"></i>
+                </div>
+                <h2 class="welcome-title">数据管理配置</h2>
+                <p class="welcome-subtitle">绑定一个 JSON 数据文件，系统将自动同时保存到本地存储与文件，避免清除数据或切换浏览器后丢失。</p>
+
+                <div class="welcome-section">
+                    <h3><i class="fas fa-link"></i> 自动保存（推荐）</h3>
+                    <p class="welcome-status" id="wizardAutoSaveStatus">状态：未绑定数据文件</p>
+                    <div class="data-btn-group">
+                        <button class="confirm-btn" id="wizardBindFileBtn">绑定数据文件</button>
+                        <button class="cancel-btn" id="wizardLoadFromBoundBtn" style="display:none;">从文件载入</button>
+                    </div>
+                    <p class="data-hint" id="wizardAutoSaveHint"></p>
+                </div>
+
+                <div class="welcome-actions">
+                    <button class="password-btn cancel-btn" id="welcomeBackBtn" style="background:#e0e0e0; color:#666;">上一步</button>
+                    <button class="password-btn" id="welcomeFinishBtn">完成</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- 数据管理模态框 -->
     <div class="modal" id="dataManageModal">
         <div class="modal-content">
@@ -3134,6 +3273,68 @@
             const dismissBtn = document.getElementById('dismissGuideBtn');
             if (dismissBtn) dismissBtn.style.display = '';
         }
+
+        // ============ 欢迎向导（首次使用配置） ============
+        function showWelcomeWizard() {
+            // 重置到第一屏
+            document.getElementById('welcomeStep1').classList.add('active');
+            document.getElementById('welcomeStep2').classList.remove('active');
+            updateWizardUI();
+            document.getElementById('welcomeWizardModal').style.display = 'flex';
+        }
+
+        function goToWelcomeStep2() {
+            document.getElementById('welcomeStep1').classList.remove('active');
+            document.getElementById('welcomeStep2').classList.add('active');
+            updateWizardUI();
+        }
+
+        function backToWelcomeStep1() {
+            document.getElementById('welcomeStep1').classList.add('active');
+            document.getElementById('welcomeStep2').classList.remove('active');
+        }
+
+        // 关闭向导并标记不再提示（跳过 / 完成均调用）
+        function dismissWelcomeWizard() {
+            document.getElementById('welcomeWizardModal').style.display = 'none';
+            localStorage.setItem('dataFileGuideDismissed', '1');
+            // 同步数据管理弹窗 UI
+            updateDataManageUI();
+        }
+
+        // 更新向导第二屏的绑定状态
+        function updateWizardUI() {
+            const statusEl = document.getElementById('wizardAutoSaveStatus');
+            const hintEl = document.getElementById('wizardAutoSaveHint');
+            const bindBtn = document.getElementById('wizardBindFileBtn');
+            const loadBtn = document.getElementById('wizardLoadFromBoundBtn');
+            if (!statusEl) return;
+            if (boundFileHandle) {
+                const name = boundFileHandle.name || '已绑定文件';
+                statusEl.textContent = '状态：已绑定「' + name + '」，本地存储与 JSON 文件已默认双写';
+                statusEl.style.color = '#27ae60';
+                if (hintEl) hintEl.textContent = '点击「完成」结束配置，即可开始使用。';
+                if (bindBtn) bindBtn.textContent = '重新绑定数据文件';
+                if (loadBtn) loadBtn.style.display = '';
+            } else {
+                statusEl.textContent = '状态：未绑定数据文件（当前仅本地存储）';
+                statusEl.style.color = '#5d6d7e';
+                if (window.showSaveFilePicker) {
+                    if (hintEl) hintEl.innerHTML = '点击「绑定数据文件」选择一个 JSON 文件，授权后即可<strong>默认同时保存到本地存储与 JSON 文件</strong>（推荐 Chrome / Edge 浏览器）。';
+                } else {
+                    if (hintEl) hintEl.textContent = '当前浏览器不支持自动保存，可稍后在「数据管理」中手动导出/恢复。';
+                }
+                if (bindBtn) bindBtn.textContent = '绑定数据文件';
+                if (loadBtn) loadBtn.style.display = 'none';
+            }
+        }
+
+        // 向导内绑定数据文件（复用核心绑定逻辑）
+        async function wizardBindDataFile() {
+            await bindDataFile();
+            updateWizardUI();
+        }
+        // ============ END 欢迎向导 ============
 
         // 更新数据管理弹窗 UI 状态
         function updateDataManageUI() {
@@ -4825,9 +5026,9 @@
                 loadData();
                 // 登录后从已绑定的 JSON 文件载入数据（文件优先于缓存）
                 const bound = await initDataFileBinding();
-                // 未绑定数据文件且未关闭引导时，自动弹出引导，授权一次后默认双写
+                // 未绑定数据文件且未关闭引导时，弹出欢迎向导进行初始配置
                 if (!bound && !localStorage.getItem('dataFileGuideDismissed') && window.showSaveFilePicker) {
-                    showDataFileGuide();
+                    showWelcomeWizard();
                 }
             } else {
                 document.getElementById('passwordError').textContent = '密码错误，请重新输入';
@@ -5938,6 +6139,23 @@
                 localStorage.setItem('dataFileGuideDismissed', '1');
                 dataManageModal.style.display = 'none';
                 showNotification('已关闭自动提示，可随时点击「数据管理」绑定文件');
+            });
+
+            // 欢迎向导事件绑定
+            document.getElementById('welcomeNextBtn').addEventListener('click', goToWelcomeStep2);
+            document.getElementById('welcomeBackBtn').addEventListener('click', backToWelcomeStep1);
+            document.getElementById('welcomeFinishBtn').addEventListener('click', () => {
+                dismissWelcomeWizard();
+                showNotification('配置完成，开始使用 ClassPoints');
+            });
+            document.getElementById('welcomeSkipBtn').addEventListener('click', () => {
+                dismissWelcomeWizard();
+                showNotification('已跳过初始配置，可稍后点击「数据管理」绑定文件');
+            });
+            document.getElementById('wizardBindFileBtn').addEventListener('click', wizardBindDataFile);
+            document.getElementById('wizardLoadFromBoundBtn').addEventListener('click', async () => {
+                await loadFromBoundFile();
+                updateWizardUI();
             });
 
             // 初始化数据（文件绑定在登录后由 checkPassword 触发，实现默认双写）
