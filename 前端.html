@@ -288,6 +288,19 @@
             background: #eaf2fb;
         }
 
+        .detail-score-row {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .detail-score-row #detailScore {
+            min-width: 32px;
+            text-align: center;
+            font-weight: 600;
+            color: var(--cp-primary);
+        }
+
         .student-score {
             font-size: 1.05rem;
             font-weight: 600;
@@ -2364,7 +2377,14 @@
                 <div class="detail-section-title">基本信息</div>
                 <div class="detail-info-row"><span>姓名</span><span id="detailName"></span></div>
                 <div class="detail-info-row"><span>序号</span><span id="detailIndex"></span></div>
-                <div class="detail-info-row"><span>当前积分</span><span id="detailScore"></span></div>
+                <div class="detail-info-row">
+                    <span>当前积分</span>
+                    <span class="detail-score-row">
+                        <button class="score-btn minus-btn" id="detailMinusBtn" title="减分">&minus;</button>
+                        <span id="detailScore"></span>
+                        <button class="score-btn plus-btn" id="detailPlusBtn" title="加分">&plus;</button>
+                    </span>
+                </div>
             </div>
             <div class="detail-section">
                 <div class="detail-section-title">小组信息</div>
@@ -2378,6 +2398,9 @@
                 </div>
             </div>
             <div class="action-btns-modal">
+                <button class="confirm-btn" id="editDetailBtn">
+                    <i class="fas fa-edit"></i> 编辑学生
+                </button>
                 <button class="delete-btn" id="deleteDetailBtn">
                     <i class="fas fa-trash-alt"></i> 删除学生
                 </button>
@@ -3538,10 +3561,12 @@
         }
 
         // 显示学生详情弹窗（基本信息 + 小组 + 改分记录）
+        let currentDetailIndex = -1;
         function showStudentDetail(index) {
             const classData = classes[currentClass];
             if (!classData || !classData.students || !classData.students[index]) return;
             const student = classData.students[index];
+            currentDetailIndex = index;
 
             document.getElementById('detailStudentName').textContent = student.name;
             document.getElementById('detailName').textContent = student.name;
@@ -4077,7 +4102,13 @@
                 }
                 
                 showNotification(`已${change > 0 ? '增加' : '减少'} ${students[currentAdjustIndex].name} ${Math.abs(change)} 分，原因: ${reason}`);
-                
+
+                // 若详情弹窗处于打开状态，刷新以反映最新积分与改分记录
+                if (document.getElementById('studentDetailModal').style.display === 'flex'
+                    && currentDetailIndex === currentAdjustIndex) {
+                    showStudentDetail(currentAdjustIndex);
+                }
+
             } else if (currentAdjustType === 'group-all') {
                 // 小组所有成员加减分
                 const students = classData.students;
@@ -4242,36 +4273,45 @@
         // 保存学生编辑
         function saveStudentEdit() {
             if (currentEditIndex === -1) return;
-            
+
             const students = classes[currentClass].students;
             const name = document.getElementById('editStudentName').value.trim();
             const score = parseInt(document.getElementById('editStudentScore').value) || 0;
             const group = document.getElementById('editStudentGroup').value;
-            
+
             if (!name) {
                 showNotification('学生姓名不能为空', true);
                 return;
             }
-            
+
+            // 记录是否从详情页打开的编辑（保存后需重新打开详情以反映更新）
+            const wasFromDetail = (currentDetailIndex === currentEditIndex && currentDetailIndex !== -1);
+            const editedIndex = currentEditIndex;
+
             students[currentEditIndex].name = name;
             students[currentEditIndex].score = score;
             students[currentEditIndex].group = group;
-            
+
             // 更新组长状态
             updateGroupLeaders();
-            
+
             saveData();
-            
+
             if (viewMode === 'individual') {
                 renderStudents();
             } else {
                 renderGroups();
             }
-            
+
             editStudentModal.style.display = 'none';
             currentEditIndex = -1;
-            
+
             showNotification('学生信息已更新');
+
+            // 若编辑来自详情页，则重新打开详情以展示更新后的姓名/积分/小组
+            if (wasFromDetail) {
+                showStudentDetail(editedIndex);
+            }
         }
         
         // 删除学生
@@ -6174,6 +6214,30 @@
             });
             document.getElementById('closeDetailBtn').addEventListener('click', () => {
                 document.getElementById('studentDetailModal').style.display = 'none';
+            });
+
+            document.getElementById('editDetailBtn').addEventListener('click', () => {
+                if (currentDetailIndex === -1) return;
+                document.getElementById('studentDetailModal').style.display = 'none';
+                editStudent(currentDetailIndex);
+            });
+
+            document.getElementById('detailMinusBtn').addEventListener('click', () => {
+                if (currentDetailIndex === -1) return;
+                currentAdjustType = 'individual';
+                currentAdjustIndex = currentDetailIndex;
+                currentAdjustGroup = '';
+                currentScoreChange = -1;
+                showReasonModal();
+            });
+
+            document.getElementById('detailPlusBtn').addEventListener('click', () => {
+                if (currentDetailIndex === -1) return;
+                currentAdjustType = 'individual';
+                currentAdjustIndex = currentDetailIndex;
+                currentAdjustGroup = '';
+                currentScoreChange = 1;
+                showReasonModal();
             });
 
             document.getElementById('deleteDetailBtn').addEventListener('click', () => {
