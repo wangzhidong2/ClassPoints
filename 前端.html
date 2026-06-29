@@ -5086,6 +5086,28 @@
         }
         
         // 密码相关功能
+        // 初始化时判断：无密码或首次使用则跳过密码框直接进入应用
+        async function autoLoginIfNeeded() {
+            const stored = localStorage.getItem('systemPassword');
+            // 首次使用（null）或已设置为无密码（''）：跳过密码框
+            if (stored === null || stored === '') {
+                passwordModal.style.display = 'none';
+                appContainer.style.display = 'block';
+                loadData();
+                // 首次使用且未绑定文件、未关闭引导：弹出欢迎向导
+                if (stored === null && !localStorage.getItem('dataFileGuideDismissed') && window.showSaveFilePicker) {
+                    const bound = await initDataFileBinding();
+                    if (!bound) showWelcomeWizard();
+                } else {
+                    // 非首次但无密码，仍需初始化文件绑定（默认双写）
+                    await initDataFileBinding();
+                }
+            } else {
+                // 有密码：显示密码框等待登录
+                passwordModal.style.display = 'flex';
+            }
+        }
+
         async function checkPassword() {
             // 已设置的密码可能为空字符串（表示无密码），也可能未设置（首次使用，由初始化引导）
             const hasPassword = localStorage.getItem('systemPassword') !== null;
@@ -5848,8 +5870,8 @@
                 createComboBox(sel);
             });
 
-            // 显示密码模态框
-            passwordModal.style.display = 'flex';
+            // 显示密码模态框（无密码或首次使用时自动跳过）
+            autoLoginIfNeeded();
             
             // 密码功能事件绑定
             document.getElementById('loginBtn').addEventListener('click', checkPassword);
