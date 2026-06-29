@@ -2759,8 +2759,32 @@
                 </div>
             </div>
 
-            <!-- 第二屏：数据管理配置 -->
+            <!-- 第二屏：密码设置 -->
             <div class="welcome-step" id="welcomeStep2">
+                <div class="welcome-logo">
+                    <i class="fas fa-key"></i>
+                </div>
+                <h2 class="welcome-title">设置访问密码</h2>
+                <p class="welcome-subtitle">为系统设置一个访问密码，留空表示不启用密码保护。</p>
+                <div class="welcome-section">
+                    <div class="password-input-group">
+                        <label for="wizardNewPassword">新密码：</label>
+                        <input type="password" id="wizardNewPassword" placeholder="留空表示无密码">
+                    </div>
+                    <div class="password-input-group">
+                        <label for="wizardConfirmPassword">确认密码：</label>
+                        <input type="password" id="wizardConfirmPassword" placeholder="再次输入新密码">
+                    </div>
+                    <div class="password-error" id="wizardPasswordError"></div>
+                </div>
+                <div class="welcome-actions">
+                    <button class="password-btn cancel-btn" id="welcomePwdBackBtn" style="background:#e0e0e0; color:#666;">上一步</button>
+                    <button class="password-btn" id="welcomePwdNextBtn">下一步</button>
+                </div>
+            </div>
+
+            <!-- 第三屏：数据管理配置 -->
+            <div class="welcome-step" id="welcomeStep3">
                 <div class="welcome-logo">
                     <i class="fas fa-database"></i>
                 </div>
@@ -3009,7 +3033,7 @@
                 currentClass: currentClass,
                 viewMode: viewMode,
                 reasonTags: reasonTags,
-                systemPassword: localStorage.getItem('systemPassword') || '123456'
+                systemPassword: localStorage.getItem('systemPassword') || ''
             };
         }
 
@@ -3022,7 +3046,7 @@
             if (data.currentClass) currentClass = data.currentClass;
             if (data.viewMode) viewMode = data.viewMode;
             if (data.reasonTags) reasonTags = data.reasonTags;
-            if (data.systemPassword) localStorage.setItem('systemPassword', data.systemPassword);
+            if (data.systemPassword !== undefined && data.systemPassword !== null) localStorage.setItem('systemPassword', data.systemPassword);
             // 同步到 localStorage 缓存
             localStorage.setItem('classPointsSystem', JSON.stringify(classes));
             localStorage.setItem('classProducts', JSON.stringify(products));
@@ -3279,19 +3303,65 @@
             // 重置到第一屏
             document.getElementById('welcomeStep1').classList.add('active');
             document.getElementById('welcomeStep2').classList.remove('active');
+            document.getElementById('welcomeStep3').classList.remove('active');
+            // 清空密码输入
+            document.getElementById('wizardNewPassword').value = '';
+            document.getElementById('wizardConfirmPassword').value = '';
+            document.getElementById('wizardPasswordError').textContent = '';
             updateWizardUI();
             document.getElementById('welcomeWizardModal').style.display = 'flex';
         }
 
+        // 第1屏 → 第2屏（密码设置）
         function goToWelcomeStep2() {
             document.getElementById('welcomeStep1').classList.remove('active');
             document.getElementById('welcomeStep2').classList.add('active');
+        }
+
+        // 第2屏 → 第1屏（返回）
+        function backFromWelcomeStep2() {
+            document.getElementById('welcomeStep1').classList.add('active');
+            document.getElementById('welcomeStep2').classList.remove('active');
+        }
+
+        // 第2屏 → 第3屏（验证密码后进入数据配置）
+        function goToWelcomeStep3() {
+            const newPwd = document.getElementById('wizardNewPassword').value;
+            const confirmPwd = document.getElementById('wizardConfirmPassword').value;
+            const errEl = document.getElementById('wizardPasswordError');
+            errEl.textContent = '';
+
+            // 留空表示无密码，直接通过
+            if (newPwd === '' && confirmPwd === '') {
+                localStorage.setItem('systemPassword', '');
+                document.getElementById('welcomeStep2').classList.remove('active');
+                document.getElementById('welcomeStep3').classList.add('active');
+                updateWizardUI();
+                return;
+            }
+
+            // 非空校验
+            if (newPwd.length < 6) {
+                errEl.textContent = '密码长度至少6位';
+                return;
+            }
+            if (newPwd !== confirmPwd) {
+                errEl.textContent = '两次输入的密码不一致';
+                return;
+            }
+
+            // 保存密码
+            localStorage.setItem('systemPassword', newPwd);
+            scheduleAutoSaveToFile();
+            document.getElementById('welcomeStep2').classList.remove('active');
+            document.getElementById('welcomeStep3').classList.add('active');
             updateWizardUI();
         }
 
+        // 第3屏 → 第2屏（返回）
         function backToWelcomeStep1() {
-            document.getElementById('welcomeStep1').classList.add('active');
-            document.getElementById('welcomeStep2').classList.remove('active');
+            document.getElementById('welcomeStep2').classList.add('active');
+            document.getElementById('welcomeStep3').classList.remove('active');
         }
 
         // 关闭向导并标记不再提示（跳过 / 完成均调用）
@@ -3302,7 +3372,7 @@
             updateDataManageUI();
         }
 
-        // 更新向导第二屏的绑定状态
+        // 更新向导第三屏的绑定状态
         function updateWizardUI() {
             const statusEl = document.getElementById('wizardAutoSaveStatus');
             const hintEl = document.getElementById('wizardAutoSaveHint');
@@ -5017,8 +5087,19 @@
         
         // 密码相关功能
         async function checkPassword() {
-            const savedPassword = localStorage.getItem('systemPassword') || '123456'; // 默认密码
+            // 已设置的密码可能为空字符串（表示无密码），也可能未设置（首次使用，由初始化引导）
+            const hasPassword = localStorage.getItem('systemPassword') !== null;
+            const savedPassword = localStorage.getItem('systemPassword') || '';
             const passwordInput = document.getElementById('passwordInput').value;
+
+            // 未设置密码（首次使用）：直接进入欢迎向导，不校验
+            if (!hasPassword) {
+                passwordModal.style.display = 'none';
+                appContainer.style.display = 'block';
+                loadData();
+                showWelcomeWizard();
+                return;
+            }
 
             if (passwordInput === savedPassword) {
                 passwordModal.style.display = 'none';
@@ -5044,23 +5125,37 @@
             const oldPassword = document.getElementById('oldPassword').value;
             const newPassword = document.getElementById('newPassword').value;
             const confirmPassword = document.getElementById('confirmPassword').value;
-            const savedPassword = localStorage.getItem('systemPassword') || '123456';
-            
+            const savedPassword = localStorage.getItem('systemPassword') || '';
+
             if (oldPassword !== savedPassword) {
                 document.getElementById('changePasswordError').textContent = '原密码错误';
                 return;
             }
-            
+
+            // 新密码留空表示取消密码保护（两次都留空）
+            if (newPassword === '' && confirmPassword === '') {
+                localStorage.setItem('systemPassword', '');
+                scheduleAutoSaveToFile();
+                showNotification('已取消密码保护');
+                document.getElementById('changePasswordForm').style.display = 'none';
+                document.getElementById('passwordForm').style.display = 'block';
+                document.getElementById('oldPassword').value = '';
+                document.getElementById('newPassword').value = '';
+                document.getElementById('confirmPassword').value = '';
+                document.getElementById('changePasswordError').textContent = '';
+                return;
+            }
+
             if (newPassword.length < 6) {
                 document.getElementById('changePasswordError').textContent = '密码长度至少6位';
                 return;
             }
-            
+
             if (newPassword !== confirmPassword) {
                 document.getElementById('changePasswordError').textContent = '两次输入的新密码不一致';
                 return;
             }
-            
+
             localStorage.setItem('systemPassword', newPassword);
             scheduleAutoSaveToFile();
             showNotification('密码修改成功');
@@ -6143,12 +6238,18 @@
 
             // 欢迎向导事件绑定
             document.getElementById('welcomeNextBtn').addEventListener('click', goToWelcomeStep2);
+            document.getElementById('welcomePwdBackBtn').addEventListener('click', backFromWelcomeStep2);
+            document.getElementById('welcomePwdNextBtn').addEventListener('click', goToWelcomeStep3);
             document.getElementById('welcomeBackBtn').addEventListener('click', backToWelcomeStep1);
             document.getElementById('welcomeFinishBtn').addEventListener('click', () => {
                 dismissWelcomeWizard();
                 showNotification('配置完成，开始使用 ClassPoints');
             });
             document.getElementById('welcomeSkipBtn').addEventListener('click', () => {
+                // 跳过配置时仍需确保密码已设置（首次未走密码屏则默认无密码）
+                if (localStorage.getItem('systemPassword') === null) {
+                    localStorage.setItem('systemPassword', '');
+                }
                 dismissWelcomeWizard();
                 showNotification('已跳过初始配置，可稍后点击「数据管理」绑定文件');
             });
