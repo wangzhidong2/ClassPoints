@@ -2271,6 +2271,9 @@
                 <i class="fas fa-database"></i> 数据管理
             </button>
             <!-- 小组模式专用按钮 -->
+            <button class="menu-btn group-only primary" id="createGroupBtn" style="display: none;">
+                <i class="fas fa-users-cog"></i> 创建小组
+            </button>
             <button class="menu-btn group-only" id="addAllGroupsBtn" style="display: none;">
                 <i class="fas fa-users"></i> 全部小组加分
             </button>
@@ -2741,6 +2744,23 @@
             <div class="action-btns-modal">
                 <button class="confirm-btn" id="confirmGroupAction">确定</button>
                 <button class="cancel-btn" id="cancelGroupAction">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 添加成员到小组模态框 -->
+    <div class="modal" id="addMemberModal">
+        <div class="modal-content" style="max-width: 480px;">
+            <span class="close-btn" id="closeAddMember">&times;</span>
+            <h2 class="modal-title">
+                <i class="fas fa-user-plus"></i> 添加成员到 <span id="addMemberGroupName">小组</span>
+            </h2>
+            <p style="color: var(--cp-text-2); font-size: 0.9rem; margin-bottom: 12px;">点击学生即可加入本组，已在本组的学生会标记为「当前组员」。</p>
+            <div class="student-list" id="addMemberList" style="max-height: 360px; overflow-y: auto;">
+                <!-- 学生列表通过JS动态生成 -->
+            </div>
+            <div class="action-btns-modal">
+                <button class="cancel-btn" id="closeAddMemberBtn">关闭</button>
             </div>
         </div>
     </div>
@@ -3671,6 +3691,9 @@
                     <button class="group-action-btn" data-group="${groupName}">
                         <i class="fas fa-cog"></i> 小组积分操作
                     </button>
+                    <button class="group-action-btn add-member-btn" data-group="${groupName}" style="background: var(--cp-success, #34c759); border-color: var(--cp-success, #34c759);">
+                        <i class="fas fa-user-plus"></i> 添加成员
+                    </button>
                     <div class="group-student-list" id="group-${groupName}">
                         ${groupStudents.map((student, idx) => `
                             <div class="group-student-item" draggable="true" data-name="${student.name}" data-group="${groupName}">
@@ -3729,6 +3752,12 @@
                     currentAdjustType = 'group-all';
                     currentAdjustGroup = groupName;
                     showGroupActionModal();
+                });
+            });
+
+            document.querySelectorAll('.add-member-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    openAddMemberModal(btn.dataset.group);
                 });
             });
             
@@ -4443,9 +4472,94 @@
                 
                 saveData();
                 renderGroups();
-                
+
                 showNotification(`小组已重命名为: ${newName}`);
             }
+        }
+
+        // 创建小组
+        function createGroup() {
+            const name = prompt('请输入新小组名称：');
+            if (!name || !name.trim()) return;
+            const trimmed = name.trim();
+            const classData = classes[currentClass];
+            if (!classData) return;
+            if (!classData.groups) classData.groups = [];
+            if (classData.groups.includes(trimmed)) {
+                showNotification(`小组「${trimmed}」已存在`, true);
+                return;
+            }
+            classData.groups.push(trimmed);
+            saveData();
+            renderGroups();
+            showNotification(`已创建小组: ${trimmed}`);
+        }
+
+        // 当前正在添加成员的目标小组
+        let currentAddMemberGroup = '';
+
+        // 打开「添加成员到小组」弹窗
+        function openAddMemberModal(groupName) {
+            const classData = classes[currentClass];
+            if (!classData || !classData.students || classData.students.length === 0) {
+                showNotification('当前班级没有学生，请先添加学生', true);
+                return;
+            }
+            currentAddMemberGroup = groupName;
+            document.getElementById('addMemberGroupName').textContent = groupName;
+            renderAddMemberList();
+            document.getElementById('addMemberModal').style.display = 'flex';
+        }
+
+        // 渲染添加成员的学生列表
+        function renderAddMemberList() {
+            const classData = classes[currentClass];
+            const listEl = document.getElementById('addMemberList');
+            listEl.innerHTML = '';
+            const students = classData.students || [];
+            if (students.length === 0) {
+                listEl.innerHTML = '<div class="empty-state">暂无学生</div>';
+                return;
+            }
+            students.forEach((student, index) => {
+                const inThisGroup = student.group === currentAddMemberGroup;
+                const item = document.createElement('div');
+                item.className = 'add-member-item';
+                item.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border:1px solid var(--cp-border);border-radius:var(--cp-radius-sm);margin-bottom:8px;cursor:pointer;transition:background 0.15s;';
+                item.innerHTML = `
+                    <span>
+                        <span style="font-weight:500;">${student.name}</span>
+                        <span style="color:var(--cp-text-2);font-size:0.85rem;margin-left:8px;">
+                            ${student.group ? `当前: ${student.group}` : '未分组'}
+                        </span>
+                    </span>
+                    <span style="font-size:0.85rem;${inThisGroup ? 'color:var(--cp-success, #34c759);font-weight:600;' : 'color:var(--cp-primary);'}">
+                        ${inThisGroup ? '✓ 当前组员' : '点击加入'}
+                    </span>
+                `;
+                if (!inThisGroup) {
+                    item.addEventListener('mouseenter', () => { item.style.background = '#f5f7fa'; });
+                    item.addEventListener('mouseleave', () => { item.style.background = ''; });
+                    item.addEventListener('click', () => addMemberToGroup(index));
+                } else {
+                    item.style.opacity = '0.6';
+                    item.style.cursor = 'default';
+                }
+                listEl.appendChild(item);
+            });
+        }
+
+        // 将指定学生加入当前目标小组
+        function addMemberToGroup(studentIndex) {
+            const classData = classes[currentClass];
+            if (!classData || !classData.students || !classData.students[studentIndex]) return;
+            const student = classData.students[studentIndex];
+            student.group = currentAddMemberGroup;
+            updateGroupLeaders();
+            saveData();
+            renderGroups();
+            renderAddMemberList();
+            showNotification(`已将 ${student.name} 加入小组: ${currentAddMemberGroup}`);
         }
         
         // 删除所有学生
@@ -6173,9 +6287,20 @@
             
             // 全部小组加分
             document.getElementById('addAllGroupsBtn').addEventListener('click', addScoreToAllGroups);
-            
+
             // 全部小组清零
             document.getElementById('resetAllGroupsBtn').addEventListener('click', resetAllGroups);
+
+            // 创建小组
+            document.getElementById('createGroupBtn').addEventListener('click', createGroup);
+
+            // 添加成员到小组模态框事件
+            document.getElementById('closeAddMember').addEventListener('click', () => {
+                document.getElementById('addMemberModal').style.display = 'none';
+            });
+            document.getElementById('closeAddMemberBtn').addEventListener('click', () => {
+                document.getElementById('addMemberModal').style.display = 'none';
+            });
             
             // 其他事件绑定
             document.getElementById('resetAllBtn').addEventListener('click', resetAllScores);
