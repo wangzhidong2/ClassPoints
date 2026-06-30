@@ -2233,44 +2233,13 @@
         </header>
 
         <div class="menu-bar">
+            <!-- 积分操作 -->
             <button class="menu-btn individual-only primary" id="addAllBtn">
                 <i class="fas fa-user-friends"></i> 全班加分
             </button>
             <button class="menu-btn individual-only" id="resetAllBtn">
                 <i class="fas fa-redo"></i> 全班清零
             </button>
-            <button class="menu-btn" id="rankingBtn">
-                <i class="fas fa-trophy"></i> 排行榜
-            </button>
-            <button class="menu-btn" id="randomPickBtn">
-                <i class="fas fa-random"></i> 随机点名
-            </button>
-            <label class="file-input-label" for="fileInput">
-                <i class="fas fa-file-import"></i> 导入积分
-            </label>
-            <input type="file" id="fileInput" accept=".xlsx, .xls">
-            <button class="menu-btn" id="exportBtn">
-                <i class="fas fa-file-export"></i> 导出积分
-            </button>
-            <button class="menu-btn" id="studentManagerBtn">
-                <i class="fas fa-users"></i> 学生管理
-            </button>
-            <button class="menu-btn delete" id="deleteAllBtn">
-                <i class="fas fa-trash-alt"></i> 删除所有学生
-            </button>
-            <button class="menu-btn" id="shopBtn">
-                <i class="fas fa-store"></i> 积分商城
-            </button>
-            <button class="menu-btn" id="recordBtn">
-                <i class="fas fa-history"></i> 兑换记录
-            </button>
-            <button class="menu-btn summary individual-only" id="summaryBtn">
-                <i class="fas fa-calculator"></i> 积分汇总
-            </button>
-            <button class="menu-btn" id="dataManageBtn">
-                <i class="fas fa-database"></i> 数据管理
-            </button>
-            <!-- 小组模式专用按钮 -->
             <button class="menu-btn group-only primary" id="createGroupBtn" style="display: none;">
                 <i class="fas fa-users-cog"></i> 创建小组
             </button>
@@ -2279,6 +2248,41 @@
             </button>
             <button class="menu-btn group-only" id="resetAllGroupsBtn" style="display: none;">
                 <i class="fas fa-redo"></i> 全部小组清零
+            </button>
+            <!-- 学生管理 -->
+            <button class="menu-btn" id="studentManagerBtn">
+                <i class="fas fa-users"></i> 学生管理
+            </button>
+            <button class="menu-btn delete" id="deleteAllBtn">
+                <i class="fas fa-trash-alt"></i> 删除所有学生
+            </button>
+            <!-- 课堂互动 -->
+            <button class="menu-btn" id="rankingBtn">
+                <i class="fas fa-trophy"></i> 排行榜
+            </button>
+            <button class="menu-btn" id="randomPickBtn">
+                <i class="fas fa-random"></i> 随机点名
+            </button>
+            <button class="menu-btn summary individual-only" id="summaryBtn">
+                <i class="fas fa-calculator"></i> 积分汇总
+            </button>
+            <!-- 积分商城 -->
+            <button class="menu-btn" id="shopBtn">
+                <i class="fas fa-store"></i> 积分商城
+            </button>
+            <button class="menu-btn" id="recordBtn">
+                <i class="fas fa-history"></i> 兑换记录
+            </button>
+            <!-- 数据 IO -->
+            <label class="file-input-label" for="fileInput">
+                <i class="fas fa-file-import"></i> 导入积分
+            </label>
+            <input type="file" id="fileInput" accept=".xlsx, .xls">
+            <button class="menu-btn" id="exportBtn">
+                <i class="fas fa-file-export"></i> 导出积分
+            </button>
+            <button class="menu-btn" id="dataManageBtn">
+                <i class="fas fa-database"></i> 数据管理
             </button>
         </div>
         
